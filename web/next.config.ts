@@ -4,12 +4,18 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // Get the backend URL from environment variable
     const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
-    console.log("Next.js rewrite using backend URL:", backendUrl);
+
+    // Add protocol if using Railway's internal networking
+    const formattedUrl = backendUrl.includes(".railway.internal")
+      ? `http://${backendUrl}`
+      : backendUrl;
+
+    console.log("Next.js rewrite using backend URL:", formattedUrl);
 
     return [
       {
         source: "/api/:path*",
-        destination: `${backendUrl}/:path*`, // Rewrite to the actual backend URL
+        destination: `${formattedUrl}/:path*`, // Rewrite to the actual backend URL
       },
     ];
   },
