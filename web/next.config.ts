@@ -2,16 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    // In production, rewrite /api to the actual backend URL
+    // Get the backend URL from environment variable
     const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
-    const formattedUrl = backendUrl.startsWith("http")
-      ? backendUrl
-      : `https://${backendUrl}`;
+    console.log("Next.js rewrite using backend URL:", backendUrl);
 
     return [
       {
         source: "/api/:path*",
-        destination: `${formattedUrl}/:path*`,
+        destination: `${backendUrl}/:path*`, // Rewrite to the actual backend URL
       },
     ];
   },
