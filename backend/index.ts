@@ -1,33 +1,54 @@
-import express from "express";
-import type { Request, Response } from "express";
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-const app = express();
-const PORT = 3000;
+Bun.serve({
+  port: PORT,
+  async fetch(req) {
+    // Handle CORS preflight
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+        },
+      });
+    }
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+    // Set CORS headers for all responses
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    };
 
-// Enable CORS for the frontend
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:3001"); // Next.js's default port
-  res.header("Access-Control-Allow-Headers", "Content-Type");
-  res.header("Access-Control-Allow-Methods", "POST");
-  next();
+    try {
+      const url = new URL(req.url);
+
+      // Root endpoint
+      if (url.pathname === "/" && req.method === "GET") {
+        return Response.json(
+          { message: "Hello from Bun!" },
+          { headers: corsHeaders }
+        );
+      }
+
+      // Submit text endpoint
+      if (url.pathname === "/submit-text" && req.method === "POST") {
+        const data = await req.json();
+        console.log("Received text:", data.text);
+        return Response.json({ success: true }, { headers: corsHeaders });
+      }
+
+      // Handle 404
+      return new Response("Not Found", { status: 404, headers: corsHeaders });
+    } catch (error) {
+      console.error("Error:", error);
+      return new Response("Internal Server Error", {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
+  },
 });
 
-// A simple GET endpoint
-app.get("/", (_req: Request, res: Response) => {
-  res.json({ message: "Hello from Express!" });
-});
-
-// Endpoint to receive text
-app.post("/submit-text", (req: Request, res: Response) => {
-  const { text } = req.body;
-  console.log("Received text:", text);
-  res.json({ success: true });
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+console.log(`Server running at http://localhost:${PORT}`);

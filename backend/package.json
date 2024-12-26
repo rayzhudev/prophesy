@@ -6,13 +6,9 @@
     "dev": "bun --watch index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "@types/express": "^5.0.0"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "express": "^4.21.2"
   }
 }
