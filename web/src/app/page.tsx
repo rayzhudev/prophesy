@@ -10,8 +10,13 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const url = `${API_URL}/submit-text`;
+    console.log("Calling API at:", url);
+    console.log("Environment:", process.env.NODE_ENV);
+    console.log("BACKEND_URL:", process.env.BACKEND_URL);
+
     try {
-      const response = await fetch(`${API_URL}/submit-text`, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,6 +29,8 @@ export default function Home() {
         setSpacedText(data.text);
         setText(""); // Clear the input after successful submission
         console.log("Text sent successfully");
+      } else {
+        console.error("API error:", response.status, await response.text());
       }
     } catch (error) {
       console.error("Error sending text:", error);
