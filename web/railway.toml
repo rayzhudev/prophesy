@@ -7,12 +7,16 @@ NODE_ENV = "production"
 
 [phases.setup]
 nixPkgs = ["bun"]
+cmds = ["echo 'Setting up Bun'"]
 
 [phases.install]
-cmds = ["bun install"]
+cmds = ["bun install --frozen-lockfile"]
+dependsOn = ["setup"]
 
 [phases.build]
-cmds = ["bun run build"]
+cmds = ["echo 'Starting build' && bun run build && echo 'Build complete'"]
+dependsOn = ["install"]
 
 [start]
 cmd = "bun run start"
+dependsOn = ["build"]
