@@ -35,8 +35,13 @@ Bun.serve({
       // Submit text endpoint
       if (url.pathname === "/submit-text" && req.method === "POST") {
         const data = await req.json();
+        const spacedText = data.text.split("").join(" ");
         console.log("Received text:", data.text);
-        return Response.json({ success: true }, { headers: corsHeaders });
+        console.log("Spaced text:", spacedText);
+        return Response.json(
+          { success: true, text: spacedText },
+          { headers: corsHeaders }
+        );
       }
 
       // Handle 404
