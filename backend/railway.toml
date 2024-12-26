@@ -1,8 +1,12 @@
 [build]
 builder = "nixpacks"
-buildCommand = "bun install"
 
-[deploy]
-startCommand = "bun index.ts"
-restartPolicyType = "ON_FAILURE"
-numReplicas = 1
+[variables]
+BUN_VERSION = "1.0.20"
+PORT = "3000"
+
+[phases.setup]
+nixPkgs = ["bun"]
+
+[start]
+cmd = "bun index.ts"

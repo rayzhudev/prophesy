@@ -4,6 +4,8 @@ builder = "nixpacks"
 [variables]
 BUN_VERSION = "1.0.20"
 NODE_ENV = "production"
+PORT = "3000"
+BACKEND_URL = "${{prophesy-backend.RAILWAY_PRIVATE_DOMAIN}}"
 
 [phases.setup]
 nixPkgs = ["bun"]
