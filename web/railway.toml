@@ -1,8 +1,18 @@
 [build]
 builder = "nixpacks"
-buildCommand = "bun install"
 
-[deploy]
-startCommand = "bun run start"
-restartPolicyType = "ON_FAILURE"
-numReplicas = 1
+[variables]
+BUN_VERSION = "1.0.20"
+NODE_ENV = "production"
+
+[phases.setup]
+nixPkgs = ["bun"]
+
+[phases.install]
+cmds = ["bun install"]
+
+[phases.build]
+cmds = ["bun run build"]
+
+[start]
+cmd = "bun run start"
