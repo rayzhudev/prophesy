@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+buildCommand = "bun install"
+
+[deploy]
+startCommand = "bun index.ts"
+restartPolicyType = "ON_FAILURE"
+numReplicas = 1
