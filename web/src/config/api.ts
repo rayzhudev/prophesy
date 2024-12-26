@@ -9,9 +9,7 @@ const getBackendUrl = () => {
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
   if (!backendUrl) return "http://localhost:3000"; // fallback
 
-  return backendUrl.includes(".railway.internal")
-    ? `http://${backendUrl}`
-    : backendUrl;
+  return backendUrl;
 };
 
 export const API_URL = getBackendUrl();
