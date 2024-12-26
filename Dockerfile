@@ -1,9 +1,9 @@
 # Build backend
 FROM oven/bun:1.0 AS backend-builder
 WORKDIR /app/backend
+# Copy only package.json first
 COPY backend/package.json ./package.json
-COPY backend/bun.lockb ./bun.lockb
-RUN bun install --frozen-lockfile
+RUN bun install
 COPY backend ./
 RUN bun build index.ts --target bun --outfile server.js
 
@@ -15,8 +15,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install dependencies
 COPY web/package.json ./package.json
-COPY web/bun.lockb ./bun.lockb
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Add necessary polyfills for Next.js
 RUN echo 'import { TextEncoder, TextDecoder } from "util"; \
