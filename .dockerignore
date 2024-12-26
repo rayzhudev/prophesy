@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+.next
+**/.next
+.env
+**/.env
+README.md
+**/README.md
+.dockerignore
+Dockerfile
+docker-compose.yml
+**/dist
+**/.turbo
+**/.cache 
