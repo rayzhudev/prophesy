@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
-import { httpBatchLink } from "@trpc/client";
+import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@prophesy/api";
 import { getApiUrl } from "@/config/api";
 
@@ -10,7 +10,7 @@ export const trpc = createTRPCReact<AppRouter>();
 export function getClient() {
   return trpc.createClient({
     links: [
-      httpBatchLink({
+      httpLink({
         url: getApiUrl("/trpc"),
         headers() {
           return {
