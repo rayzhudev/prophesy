@@ -9,10 +9,10 @@
     "dev": "bunx concurrently \"bun --cwd packages/api dev\" \"bun --cwd packages/backend dev\" \"bun --cwd packages/web dev\"",
     "build:api": "cd packages/api && bun build ./router.ts --outdir ./dist",
     "build:web": "cd packages/web && bun run build",
-    "build:backend": "cd packages/backend && bun build ./index.ts --outdir ./dist",
+    "build:backend": "cd packages/backend && bun run db:generate && bun build ./index.ts --outdir ./dist",
     "build": "bun run build:api && bun run build:web && bun run build:backend",
     "build:railway-web": "bun run build:api && bun run build:web",
-    "build:railway-backend": "bun run build:api && bun run build:backend",
+    "build:railway-backend": "bun run build:api && bun run build:backend && cd packages/backend && bun run db:generate",
     "start:web": "cd packages/web && bun run start",
     "start:backend": "cd packages/backend && bun run dist/index.js"
   },
