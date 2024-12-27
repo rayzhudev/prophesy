@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "/packages/backend/Dockerfile"
 
 [deploy]
 startCommand = "bun run start"
