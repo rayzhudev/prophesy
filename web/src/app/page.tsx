@@ -10,7 +10,7 @@ export default function Home() {
   const [testUrl, setTestUrl] = useState<string>(API_URL);
   const [testResponse, setTestResponse] = useState("");
 
-  const submitText = trpc.submitText.useMutation({
+  const spaceText = trpc.spaceText.useMutation({
     onSuccess: (data) => {
       setSpacedText(data.text);
       setText(""); // Clear the input after successful submission
@@ -23,7 +23,7 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    submitText.mutate({ text });
+    spaceText.mutate({ text });
   };
 
   const testApiConnection = async (e: React.FormEvent) => {

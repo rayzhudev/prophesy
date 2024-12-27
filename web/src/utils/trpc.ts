@@ -2,17 +2,24 @@ import { createTRPCReact, httpBatchLink } from "@trpc/react-query";
 import type { AppRouter } from "../../../backend/trpc";
 import { getApiUrl } from "@/config/api";
 
-export const trpc = createTRPCReact<AppRouter>();
+// Initialize tRPC with proper type
+const trpc = createTRPCReact<AppRouter>();
 
-export const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: getApiUrl("/trpc"),
-      headers() {
-        return {
-          "Content-Type": "application/json",
-        };
-      },
-    }),
-  ],
-});
+// Export the initialized instance
+export { trpc };
+
+// Export the client configuration function
+export function getClient() {
+  return trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: getApiUrl("/trpc"),
+        headers() {
+          return {
+            "Content-Type": "application/json",
+          };
+        },
+      }),
+    ],
+  });
+}

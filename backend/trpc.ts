@@ -17,7 +17,7 @@ export const appRouter = router({
     return { message: "Hello from tRPC!" };
   }),
 
-  submitText: publicProcedure.input(textInputSchema).mutation(({ input }) => {
+  spaceText: publicProcedure.input(textInputSchema).mutation(({ input }) => {
     const spacedText = input.text.split("").join(" ");
     console.log("Received text:", input.text);
     console.log("Spaced text:", spacedText);
