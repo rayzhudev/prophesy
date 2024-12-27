@@ -16,7 +16,14 @@ export default function Home() {
     userId: "",
   });
 
-  const { data: users, refetch: refetchUsers } = trpc.getUsers.useQuery();
+  const { data: users, refetch: refetchUsers } = trpc.getUsers.useQuery(
+    undefined,
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: true,
+      staleTime: 0,
+    }
+  );
   const createUser = trpc.createUser.useMutation({
     onSuccess: () => {
       setError(null);
