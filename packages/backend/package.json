@@ -8,11 +8,14 @@
     "start": "bun run dist/index.js",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
-    "db:push": "prisma db push",
+    "db:push": "dotenv -e .env.local prisma db push",
     "db:reset": "prisma db push --force-reset",
     "db:studio": "prisma studio",
     "db:wipe": "docker-compose down -v && docker-compose up -d && bun run db:push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:prod": "dotenv -e .env.production prisma migrate deploy"
   },
   "dependencies": {
     "@prophesy/api": "workspace:*",
@@ -22,7 +25,8 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "prisma": "^5.10.2"
+    "prisma": "^5.10.2",
+    "dotenv-cli": "^7.4.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

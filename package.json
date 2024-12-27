@@ -17,6 +17,7 @@
     "start:backend": "cd packages/backend && bun run dist/index.js"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "dotenv-cli": "^8.0.0"
   }
 }

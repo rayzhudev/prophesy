@@ -176,4 +176,6 @@ dist
 
 node_modules
 .env
+.env.local
+.env.production
 postgres_data
