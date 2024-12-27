@@ -30,26 +30,46 @@ Bun.serve({
       const url = new URL(req.url);
 
       if (url.pathname.startsWith("/trpc")) {
-        const response = await fetchRequestHandler({
-          endpoint: "/trpc",
-          req,
-          router,
-          createContext,
-          onError({ error }) {
-            console.error("tRPC error:", error);
-          },
-          responseMeta: () => ({
-            headers: corsHeaders,
-          }),
-        });
+        try {
+          const response = await fetchRequestHandler({
+            endpoint: "/trpc",
+            req,
+            router,
+            createContext,
+            onError({ error }) {
+              console.error("tRPC error:", error);
+            },
+            responseMeta: () => ({
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json",
+              },
+            }),
+          });
 
-        const newResponse = new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: corsHeaders,
-        });
+          const newResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers({
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            }),
+          });
 
-        return newResponse;
+          return newResponse;
+        } catch (error) {
+          console.error("tRPC handler error:", error);
+          return new Response(
+            JSON.stringify({ error: "Internal Server Error" }),
+            {
+              status: 500,
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
       }
 
       if (url.pathname === "/" && req.method === "GET") {

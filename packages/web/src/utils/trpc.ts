@@ -17,13 +17,6 @@ export function getClient() {
             "Content-Type": "application/json",
           };
         },
-        // Force POST method for all requests
-        fetch(url, options) {
-          return fetch(url, {
-            ...options,
-            method: "POST",
-          });
-        },
       }),
     ],
   });
