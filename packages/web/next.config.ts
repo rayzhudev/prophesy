@@ -10,11 +10,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${backendUrl}/:path*`,
+        destination: `https://${backendUrl}/:path*`,
       },
       {
         source: "/trpc/:path*",
-        destination: `${backendUrl}/trpc/:path*`,
+        destination: `https://${backendUrl}/trpc/:path*`,
       },
     ];
   },
