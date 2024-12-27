@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch index.ts",
-    "build": "bun build ./index.ts --outdir ./dist",
+    "build": "bun build ./index.ts --outdir ./dist --target node",
     "start": "bun run dist/index.js",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
