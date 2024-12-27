@@ -11,8 +11,9 @@ const API_CONFIGS = {
     useProxy: false,
   },
   production: {
-    baseUrl: "", // Empty because we use relative URLs in production
-    useProxy: true, // Use Next.js rewrites in production
+    baseUrl:
+      process.env.NEXT_PUBLIC_BACKEND_URL || "",
+    useProxy: true,
   },
 } as const;
 
@@ -24,9 +25,11 @@ export const getApiUrl = (path: string): string => {
   // Add leading slash if missing
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // In environments where we use the proxy (production), prefix with /api
-  // In other environments (dev/test), use the full URL
-  return config.useProxy
-    ? `/api${normalizedPath}`
-    : `${config.baseUrl}${normalizedPath}`;
+  if (config.useProxy) {
+    // In production, use the Next.js rewrite
+    return `/api${normalizedPath}`;
+  }
+
+  // In development, call the backend directly
+  return `${config.baseUrl}${normalizedPath}`;
 };
