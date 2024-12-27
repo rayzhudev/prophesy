@@ -6,7 +6,7 @@ import { API_URL, getApiUrl } from "@/config/api";
 export default function Home() {
   const [text, setText] = useState("");
   const [spacedText, setSpacedText] = useState("");
-  const [testUrl, setTestUrl] = useState(API_URL);
+  const [testUrl, setTestUrl] = useState<string>(API_URL);
   const [testResponse, setTestResponse] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
