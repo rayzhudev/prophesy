@@ -30,7 +30,7 @@ Bun.serve({
       const url = new URL(req.url);
 
       if (url.pathname.startsWith("/trpc")) {
-        return fetchRequestHandler({
+        const response = await fetchRequestHandler({
           endpoint: "/trpc",
           req,
           router,
@@ -38,10 +38,18 @@ Bun.serve({
           onError({ error }) {
             console.error("tRPC error:", error);
           },
-          responseMeta() {
-            return { headers: corsHeaders };
-          },
+          responseMeta: () => ({
+            headers: corsHeaders,
+          }),
         });
+
+        const newResponse = new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: corsHeaders,
+        });
+
+        return newResponse;
       }
 
       if (url.pathname === "/" && req.method === "GET") {
