@@ -2,8 +2,8 @@ import { initTRPC } from "@trpc/server";
 import {
   createUserSchema,
   createTweetSchema,
-  type AppRouter,
-} from "@prophesy/api/router";
+} from "@prophesy/api";
+import type { AppRouter } from "@prophesy/api";
 import { prisma } from "./lib/prisma";
 
 // Context type definition
