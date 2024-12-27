@@ -30,12 +30,18 @@ COPY packages/backend/ ./packages/backend/
 # Install dependencies
 RUN bun install
 
+# Build API package first
+WORKDIR /app/packages/api
+RUN bun build ./router.ts --outdir ./dist --target node
+
 # Generate Prisma client
 WORKDIR /app/packages/backend
 RUN bun run db:generate
 
-# Build the application
-RUN bun build ./index.ts --outdir ./dist --target node
+# Build the backend
+RUN bun build ./index.ts --outdir ./dist --target node \
+    --external @prisma/client \
+    --external prisma
 
 # Expose the port
 EXPOSE 3000
