@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch index.ts",
-    "build": "bun build ./index.ts --outdir ./dist --target node",
+    "build": "bun run db:generate && bun build ./index.ts --outdir ./dist --target node --external @prisma/client --external prisma",
     "start": "bun run dist/index.js",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",

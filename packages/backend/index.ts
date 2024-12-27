@@ -1,3 +1,4 @@
+"use server";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { router } from "./trpc";
 import type { AnyRouter } from "@trpc/server";

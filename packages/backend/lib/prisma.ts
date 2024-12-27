@@ -1,20 +1,36 @@
 import { PrismaClient } from "@prisma/client";
 
-declare global {
-  var prisma: PrismaClient | undefined;
+// Ensure we're in a Node.js-like environment
+if (
+  typeof global === "undefined" ||
+  !global.process ||
+  !global.process.version
+) {
+  throw new Error("This module must be run in a Node.js environment");
 }
 
-const prisma =
-  global.prisma ||
-  new PrismaClient({
+// Create a singleton instance
+const prismaClientSingleton = () => {
+  return new PrismaClient({
     log:
       process.env.NODE_ENV === "development"
         ? ["query", "error", "warn"]
         : ["error"],
+    errorFormat: "pretty",
   });
+};
 
+// Use type declaration to ensure proper typing
+declare global {
+  var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
+}
+
+// Initialize the client
+const prisma = globalThis.prisma ?? prismaClientSingleton();
+
+// Save the instance in development for hot reload
 if (process.env.NODE_ENV !== "production") {
-  global.prisma = prisma;
+  globalThis.prisma = prisma;
 }
 
 export { prisma };
