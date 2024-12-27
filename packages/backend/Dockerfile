@@ -8,18 +8,18 @@ RUN apt-get update && apt-get install -y openssl libssl3
 # Create directory structure
 RUN mkdir -p packages/api packages/backend
 
+# Copy workspace files first
+COPY package.json .
+COPY bun.lockb .
+
 # Copy API package
-COPY ../api/package.json ./packages/api/
-COPY ../api/*.ts ./packages/api/
+COPY packages/api/package.json ./packages/api/
+COPY packages/api/*.ts ./packages/api/
 
 # Copy backend package
-COPY package.json ./packages/backend/
-COPY bun.lockb ./packages/backend/
-COPY . ./packages/backend/
-
-# Copy root workspace files
-COPY ../../package.json .
-COPY ../../bun.lockb .
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/backend/bun.lockb ./packages/backend/
+COPY packages/backend/ ./packages/backend/
 
 # Install dependencies
 RUN bun install
