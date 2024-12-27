@@ -12,10 +12,11 @@ export function getClient() {
     links: [
       httpBatchLink({
         url: getApiUrl("/trpc"),
-        // Force POST requests for all operations
-        headers: () => ({
-          "Content-Type": "application/json",
-        }),
+        headers() {
+          return {
+            "Content-Type": "application/json",
+          };
+        },
       }),
     ],
   });
