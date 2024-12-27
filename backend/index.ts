@@ -2,6 +2,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 Bun.serve({
   port: PORT,
+  hostname: "::",
   async fetch(req) {
     // Handle CORS preflight
     if (req.method === "OPTIONS") {
@@ -56,4 +57,4 @@ Bun.serve({
   },
 });
 
-console.log(`Server running at http://localhost:${PORT}`);
+console.log(`Server running at http://[::]:${PORT}`);

@@ -15,7 +15,8 @@ export default function Home() {
     const url = `${API_URL}/submit-text`;
     console.log("Calling API at:", url);
     console.log("Environment:", process.env.NODE_ENV);
-    console.log("BACKEND_URL:", process.env.BACKEND_URL);
+    console.log("BACKEND_URL:", process.env.NEXT_PUBLIC_BACKEND_URL);
+    console.log("API_URL:", API_URL);
 
     try {
       const response = await fetch(url, {
