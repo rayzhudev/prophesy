@@ -1,4 +1,10 @@
-FROM oven/bun:1.0
+FROM ubuntu:22.04
+
+# Install Bun
+RUN apt-get update && apt-get install -y curl unzip && \
+    curl -fsSL https://bun.sh/install | bash
+
+ENV PATH="/root/.bun/bin:${PATH}"
 
 WORKDIR /app
 
