@@ -1,6 +1,6 @@
 import { PORT, PRODUCTION_DOMAIN, ALLOWED_ORIGINS } from "./constants";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "./trpc";
+import { router } from "@prophesy/api";
 
 Bun.serve({
   port: PORT,
@@ -28,7 +28,7 @@ Bun.serve({
         return fetchRequestHandler({
           endpoint: "/trpc",
           req,
-          router: appRouter,
+          router,
           createContext: () => ({}),
           onError({ error }) {
             console.error("tRPC error:", error);
@@ -43,18 +43,6 @@ Bun.serve({
       if (url.pathname === "/" && req.method === "GET") {
         return Response.json(
           { message: "Hello from Bun!" },
-          { headers: corsHeaders }
-        );
-      }
-
-      // Submit text endpoint (legacy)
-      if (url.pathname === "/submit-text" && req.method === "POST") {
-        const data = await req.json();
-        const spacedText = data.text.split("").join(" ");
-        console.log("Received text:", data.text);
-        console.log("Spaced text:", spacedText);
-        return Response.json(
-          { success: true, text: spacedText },
           { headers: corsHeaders }
         );
       }
