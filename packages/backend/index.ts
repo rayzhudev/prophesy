@@ -1,6 +1,7 @@
 import { PORT, PRODUCTION_DOMAIN, ALLOWED_ORIGINS } from "./constants";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { router } from "@prophesy/api";
+import type { AnyRouter } from "@trpc/server";
 
 Bun.serve({
   port: PORT,
@@ -28,7 +29,7 @@ Bun.serve({
         return fetchRequestHandler({
           endpoint: "/trpc",
           req,
-          router,
+          router: router as AnyRouter,
           createContext: () => ({}),
           onError({ error }) {
             console.error("tRPC error:", error);
