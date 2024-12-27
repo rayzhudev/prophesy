@@ -1,7 +1,8 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { router } from "@prophesy/api";
+import { router } from "./trpc";
 import type { AnyRouter } from "@trpc/server";
 import { PORT, isOriginAllowed } from "./constants";
+import { createContext } from "./trpc";
 
 Bun.serve({
   port: PORT,
@@ -9,12 +10,10 @@ Bun.serve({
   async fetch(req) {
     const origin = req.headers.get("Origin");
 
-    // Only allow requests from approved origins
     if (!isOriginAllowed(origin)) {
       return new Response("Forbidden", { status: 403 });
     }
 
-    // We know origin is valid at this point
     const corsHeaders = {
       "Access-Control-Allow-Origin": origin!,
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PATCH, DELETE",
@@ -22,7 +21,6 @@ Bun.serve({
       "Access-Control-Max-Age": "86400",
     } as const;
 
-    // Handle CORS preflight
     if (req.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
@@ -30,13 +28,12 @@ Bun.serve({
     try {
       const url = new URL(req.url);
 
-      // Handle tRPC requests
       if (url.pathname.startsWith("/trpc")) {
         return fetchRequestHandler({
           endpoint: "/trpc",
           req,
-          router: router as AnyRouter,
-          createContext: () => ({}),
+          router,
+          createContext,
           onError({ error }) {
             console.error("tRPC error:", error);
           },
@@ -46,7 +43,6 @@ Bun.serve({
         });
       }
 
-      // Root endpoint
       if (url.pathname === "/" && req.method === "GET") {
         return Response.json(
           { message: "Hello from Bun!" },
@@ -54,7 +50,6 @@ Bun.serve({
         );
       }
 
-      // Handle 404
       return new Response("Not Found", { status: 404, headers: corsHeaders });
     } catch (error) {
       console.error("Error:", error);

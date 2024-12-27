@@ -1,117 +1,150 @@
 "use client";
 
 import { useState } from "react";
-import { API_URL } from "@/config/api";
-import { trpc } from "@/utils/trpc";
+import { trpc } from "../utils/trpc";
 
 export default function Home() {
-  const [text, setText] = useState("");
-  const [spacedText, setSpacedText] = useState("");
-  const [testUrl, setTestUrl] = useState<string>(API_URL);
-  const [testResponse, setTestResponse] = useState("");
+  const [userForm, setUserForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
-  const spaceText = trpc.spaceText.useMutation({
-    onSuccess: (data) => {
-      setSpacedText(data.text);
-      setText(""); // Clear the input after successful submission
-      console.log("Text sent successfully");
+  const [tweetForm, setTweetForm] = useState({
+    content: "",
+    userId: "",
+  });
+
+  const { data: users, refetch: refetchUsers } = trpc.getUsers.useQuery();
+  const createUser = trpc.createUser.useMutation({
+    onSuccess: () => {
+      refetchUsers();
+      setUserForm({ username: "", email: "", password: "" });
     },
     onError: (error) => {
-      console.error("Error sending text:", error);
+      console.error("Error creating user:", error);
+      alert("Failed to create user: " + error.message);
+    },
+  });
+  const createTweet = trpc.createTweet.useMutation({
+    onSuccess: () => {
+      refetchUsers();
+      setTweetForm({ content: "", userId: "" });
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    spaceText.mutate({ text });
-  };
-
-  const testApiConnection = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setTestResponse("Testing...");
-
     try {
-      console.log("Testing URL:", testUrl);
-      const response = await fetch(testUrl, {
-        method: "GET",
-      });
-
-      const text = await response.text();
-      setTestResponse(
-        `Status: ${response.status}\nHeaders: ${JSON.stringify(
-          Object.fromEntries(response.headers.entries()),
-          null,
-          2
-        )}\nBody: ${text}`
-      );
+      console.log("Creating user:", userForm);
+      await createUser.mutate(userForm);
     } catch (error) {
-      setTestResponse(
-        `Error: ${error instanceof Error ? error.message : String(error)}`
-      );
-      console.error("Test error:", error);
+      console.error("Form submission error:", error);
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-8">
-      {/* API Tester */}
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mb-8">
-        <h2 className="text-xl font-bold text-slate-800 mb-4">API Tester</h2>
-        <form onSubmit={testApiConnection} className="space-y-4">
+    <main className="p-8 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8">Twitter Clone</h1>
+
+      {/* Create User Form */}
+      <div className="mb-8 p-4 border rounded-lg">
+        <h2 className="text-xl font-semibold mb-4">Create User</h2>
+        <form onSubmit={handleCreateUser} className="space-y-4">
           <input
             type="text"
-            value={testUrl}
-            onChange={(e) => setTestUrl(e.target.value)}
-            placeholder="Enter API URL to test"
-            className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700 placeholder-slate-400 bg-white shadow-sm"
+            placeholder="Username"
+            value={userForm.username}
+            onChange={(e) =>
+              setUserForm({ ...userForm, username: e.target.value })
+            }
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            value={userForm.email}
+            onChange={(e) =>
+              setUserForm({ ...userForm, email: e.target.value })
+            }
+            className="w-full p-2 border rounded"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={userForm.password}
+            onChange={(e) =>
+              setUserForm({ ...userForm, password: e.target.value })
+            }
+            className="w-full p-2 border rounded"
           />
           <button
             type="submit"
-            className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Test Connection
+            Create User
           </button>
-          {testResponse && (
-            <pre className="mt-4 p-4 bg-slate-100 rounded-lg text-sm overflow-x-auto whitespace-pre-wrap">
-              {testResponse}
-            </pre>
-          )}
         </form>
       </div>
 
-      {/* Text Spacer */}
-      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-slate-800 mb-6 text-center">
-          Text Spacer
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col gap-4">
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Enter your text here"
-              className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-slate-700 placeholder-slate-400 bg-white shadow-sm"
-            />
-            <button
-              type="submit"
-              className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Space Text
-            </button>
-          </div>
+      {/* Create Tweet Form */}
+      <div className="mb-8 p-4 border rounded-lg">
+        <h2 className="text-xl font-semibold mb-4">Create Tweet</h2>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            createTweet.mutate(tweetForm);
+          }}
+          className="space-y-4"
+        >
+          <select
+            value={tweetForm.userId}
+            onChange={(e) =>
+              setTweetForm({ ...tweetForm, userId: e.target.value })
+            }
+            className="w-full p-2 border rounded"
+          >
+            <option value="">Select User</option>
+            {users?.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.username}
+              </option>
+            ))}
+          </select>
+          <textarea
+            placeholder="Tweet content"
+            value={tweetForm.content}
+            onChange={(e) =>
+              setTweetForm({ ...tweetForm, content: e.target.value })
+            }
+            className="w-full p-2 border rounded"
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Create Tweet
+          </button>
         </form>
+      </div>
 
-        {spacedText && (
-          <div className="mt-8 p-6 bg-slate-100 rounded-lg border border-slate-200">
-            <h2 className="text-sm font-medium text-slate-600 mb-3">
-              Spaced Result:
-            </h2>
-            <p className="font-mono text-lg text-slate-800 break-all">
-              {spacedText}
-            </p>
+      {/* Display Users and their Tweets */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Users and Tweets</h2>
+        {users?.map((user) => (
+          <div key={user.id} className="p-4 border rounded-lg">
+            <h3 className="font-semibold">
+              {user.username} ({user.email})
+            </h3>
+            <div className="mt-2 space-y-2">
+              {user.tweets.map((tweet) => (
+                <div key={tweet.id} className="p-2 bg-gray-50 rounded">
+                  {tweet.content}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </main>
   );

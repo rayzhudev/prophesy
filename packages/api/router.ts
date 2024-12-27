@@ -6,14 +6,28 @@ export const textInputSchema = z.object({
   text: z.string().min(1),
 });
 
-// Output types
-export interface HelloOutput {
-  message: string;
+export const createUserSchema = z.object({
+  username: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+});
+
+export const createTweetSchema = z.object({
+  content: z.string(),
+  userId: z.string(),
+});
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  tweets: Tweet[];
 }
 
-export interface SpaceTextOutput {
-  success: boolean;
-  text: string;
+export interface Tweet {
+  id: string;
+  content: string;
+  userId: string;
 }
 
 // Initialize tRPC
@@ -21,12 +35,14 @@ const t = initTRPC.create();
 
 // Create router type
 export const router = t.router({
-  hello: t.procedure.query(() => {
-    return { message: "Hello from tRPC!" } as HelloOutput;
+  createUser: t.procedure.input(createUserSchema).mutation(() => {
+    return {} as User;
   }),
-  spaceText: t.procedure.input(textInputSchema).mutation(({ input }) => {
-    const spacedText = input.text.split("").join(" ");
-    return { success: true, text: spacedText } as SpaceTextOutput;
+  getUsers: t.procedure.query(() => {
+    return [] as User[];
+  }),
+  createTweet: t.procedure.input(createTweetSchema).mutation(() => {
+    return {} as Tweet;
   }),
 });
 

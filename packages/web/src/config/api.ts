@@ -11,8 +11,7 @@ const API_CONFIGS = {
     useProxy: false,
   },
   production: {
-    baseUrl:
-      process.env.NEXT_PUBLIC_BACKEND_URL || "",
+    baseUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "",
     useProxy: true,
   },
 } as const;

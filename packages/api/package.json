@@ -5,7 +5,8 @@
   "main": "./dist/router.js",
   "types": "./router.ts",
   "scripts": {
-    "build": "bun build ./router.ts --outdir ./dist"
+    "build": "bun build ./router.ts --outdir ./dist",
+    "dev": "bun --watch ./router.ts --outdir ./dist"
   },
   "dependencies": {
     "@trpc/server": "^10.45.2",

@@ -1,29 +1,57 @@
 import { initTRPC } from "@trpc/server";
-import { z } from "zod";
+import {
+  createUserSchema,
+  createTweetSchema,
+} from "@prophesy/api";
+import type { AppRouter } from "@prophesy/api";
+import { prisma } from "./lib/prisma";
 
-const t = initTRPC.create();
+// Context type definition
+export interface Context {
+  prisma: typeof prisma;
+}
 
-export const router = t.router;
-export const publicProcedure = t.procedure;
+export const createContext = async (): Promise<Context> => {
+  return {
+    prisma,
+  };
+};
 
-// Define input schemas
-const textInputSchema = z.object({
-  text: z.string().min(1),
-});
+const t = initTRPC.context<Context>().create();
 
-// Create the root router
-export const appRouter = router({
-  hello: publicProcedure.query(() => {
-    return { message: "Hello from tRPC!" };
+export const router = t.router({
+  createUser: t.procedure
+    .input(createUserSchema)
+    .mutation(async ({ ctx, input }) => {
+      console.log("Backend received create user request:", input);
+      try {
+        const user = await ctx.prisma.user.create({
+          data: input,
+          include: { tweets: true },
+        });
+        console.log("Created user:", user);
+        return user;
+      } catch (error) {
+        console.error("Error creating user:", error);
+        throw error;
+      }
+    }),
+
+  getUsers: t.procedure.query(async ({ ctx }) => {
+    return ctx.prisma.user.findMany({
+      include: {
+        tweets: true,
+      },
+    });
   }),
 
-  spaceText: publicProcedure.input(textInputSchema).mutation(({ input }) => {
-    const spacedText = input.text.split("").join(" ");
-    console.log("Received text:", input.text);
-    console.log("Spaced text:", spacedText);
-    return { success: true, text: spacedText };
-  }),
+  createTweet: t.procedure
+    .input(createTweetSchema)
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.tweet.create({
+        data: input,
+      });
+    }),
 });
 
-// Export type router type signature
-export type AppRouter = typeof appRouter;
+export type { AppRouter };

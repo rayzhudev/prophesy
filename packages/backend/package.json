@@ -5,15 +5,24 @@
   "scripts": {
     "dev": "bun --watch index.ts",
     "build": "bun build ./index.ts --outdir ./dist",
-    "start": "bun run dist/index.js"
+    "start": "bun run dist/index.js",
+    "db:up": "docker-compose up -d",
+    "db:down": "docker-compose down",
+    "db:push": "prisma db push",
+    "db:reset": "prisma db push --force-reset",
+    "db:studio": "prisma studio",
+    "db:wipe": "docker-compose down -v && docker-compose up -d && bun run db:push",
+    "db:generate": "prisma generate"
   },
   "dependencies": {
     "@prophesy/api": "workspace:*",
     "@trpc/server": "^10.45.2",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "@prisma/client": "^5.10.2"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prisma": "^5.10.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
