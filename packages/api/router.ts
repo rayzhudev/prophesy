@@ -1,12 +1,7 @@
-import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import type { User, Tweet } from "./types";
 
 // Input schemas
-export const textInputSchema = z.object({
-  text: z.string().min(1),
-});
-
 export const createUserSchema = z.object({
   username: z.string(),
   email: z.string().email(),
@@ -18,21 +13,12 @@ export const createTweetSchema = z.object({
   userId: z.string(),
 });
 
-// Initialize tRPC
-const t = initTRPC.create();
+// Procedure definitions
+export type Procedures = {
+  createUser: (input: z.infer<typeof createUserSchema>) => Promise<User>;
+  getUsers: () => Promise<User[]>;
+  createTweet: (input: z.infer<typeof createTweetSchema>) => Promise<Tweet>;
+};
 
-// Create router type
-export const router = t.router({
-  createUser: t.procedure.input(createUserSchema).mutation(() => {
-    return {} as User;
-  }),
-  getUsers: t.procedure.query(() => {
-    return [] as User[];
-  }),
-  createTweet: t.procedure.input(createTweetSchema).mutation(() => {
-    return {} as Tweet;
-  }),
-});
-
-// Export type router type signature
-export type AppRouter = typeof router;
+// Export type for tRPC
+export type AppRouter = Procedures;

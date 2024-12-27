@@ -1,5 +1,5 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { router } from "./trpc";
+import { appRouter } from "./trpc";
 import type { AnyRouter } from "@trpc/server";
 import { PORT, isOriginAllowed } from "./constants";
 import { createContext } from "./trpc";
@@ -32,7 +32,7 @@ Bun.serve({
         return fetchRequestHandler({
           endpoint: "/trpc",
           req,
-          router,
+          router: appRouter,
           createContext,
           onError({ error }) {
             console.error("tRPC error:", error);
