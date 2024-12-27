@@ -7,14 +7,19 @@ const nextConfig: NextConfig = {
       ? process.env.NEXT_PUBLIC_BACKEND_URL
       : "http://localhost:3000";
 
+    // Remove any protocol prefix and trailing slashes
+    const cleanBackendUrl = backendUrl
+      ?.replace(/^https?:\/\//, "")
+      .replace(/\/$/, "");
+
     return [
       {
         source: "/api/:path*",
-        destination: `https://${backendUrl}/:path*`,
+        destination: `https://${cleanBackendUrl}/:path*`,
       },
       {
         source: "/trpc/:path*",
-        destination: `https://${backendUrl}/trpc/:path*`,
+        destination: `https://${cleanBackendUrl}/trpc/:path*`,
       },
     ];
   },

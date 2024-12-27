@@ -1,5 +1,10 @@
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
-export const PRODUCTION_DOMAIN = "https://prophesy.fun";
+
+// Production domains
+const PRODUCTION_DOMAINS = [
+  "https://prophesy.fun",
+  "prophesy.fun",
+] as const;
 
 // Local development domains with common ports
 export const LOCAL_DOMAINS = [
@@ -10,10 +15,13 @@ export const LOCAL_DOMAINS = [
 ] as const;
 
 // All allowed origins for CORS
-export const ALLOWED_ORIGINS = [PRODUCTION_DOMAIN, ...LOCAL_DOMAINS] as const;
+export const ALLOWED_ORIGINS = [
+  ...PRODUCTION_DOMAINS,
+  ...LOCAL_DOMAINS,
+] as const;
 
 // Helper to check if origin is allowed
 export const isOriginAllowed = (origin: string | null): boolean => {
-  if (!origin) return false;
+  if (!origin) return true; // Allow requests with no origin
   return ALLOWED_ORIGINS.includes(origin as any);
 };
