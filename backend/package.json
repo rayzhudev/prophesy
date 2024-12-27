@@ -12,6 +12,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@prophesy/api": "workspace:*",
     "@trpc/server": "^10.45.2",
     "zod": "^3.24.1"
   }
