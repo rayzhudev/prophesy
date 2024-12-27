@@ -9,6 +9,7 @@ export default function Home() {
     email: "",
     password: "",
   });
+  const [error, setError] = useState<string | null>(null);
 
   const [tweetForm, setTweetForm] = useState({
     content: "",
@@ -18,12 +19,26 @@ export default function Home() {
   const { data: users, refetch: refetchUsers } = trpc.getUsers.useQuery();
   const createUser = trpc.createUser.useMutation({
     onSuccess: () => {
+      setError(null);
       refetchUsers();
       setUserForm({ username: "", email: "", password: "" });
     },
     onError: (error) => {
-      console.error("Error creating user:", error);
-      alert("Failed to create user: " + error.message);
+      console.error("Detailed error object:", error);
+      const errorDetails = {
+        message: error.message,
+        shape: error.shape,
+        data: error.data,
+      };
+      console.error(
+        "Error creating user (structured):",
+        JSON.stringify(errorDetails, null, 2)
+      );
+      setError(
+        `Error creating user: ${
+          error.message
+        }\n\nFull error details:\n${JSON.stringify(errorDetails, null, 2)}`
+      );
     },
   });
   const createTweet = trpc.createTweet.useMutation({
@@ -35,11 +50,17 @@ export default function Home() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     try {
-      console.log("Creating user:", userForm);
+      console.log("Attempting to create user with data:", userForm);
       await createUser.mutate(userForm);
     } catch (error) {
-      console.error("Form submission error:", error);
+      console.error("Form submission catch block error:", error);
+      setError(
+        `Form submission error: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
     }
   };
 
@@ -50,6 +71,14 @@ export default function Home() {
       {/* Create User Form */}
       <div className="mb-8 p-4 border rounded-lg">
         <h2 className="text-xl font-semibold mb-4">Create User</h2>
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h3 className="font-semibold text-red-700 mb-2">Error Details:</h3>
+            <pre className="whitespace-pre-wrap text-sm text-red-600 font-mono overflow-x-auto">
+              {error}
+            </pre>
+          </div>
+        )}
         <form onSubmit={handleCreateUser} className="space-y-4">
           <input
             type="text"
