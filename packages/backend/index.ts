@@ -1,20 +1,26 @@
-import { PORT, PRODUCTION_DOMAIN, ALLOWED_ORIGINS } from "./constants";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { router } from "@prophesy/api";
 import type { AnyRouter } from "@trpc/server";
+import { PORT, isOriginAllowed } from "./constants";
 
 Bun.serve({
   port: PORT,
   hostname: "0.0.0.0",
   async fetch(req) {
     const origin = req.headers.get("Origin");
+
+    // Only allow requests from approved origins
+    if (!isOriginAllowed(origin)) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    // We know origin is valid at this point
     const corsHeaders = {
-      "Access-Control-Allow-Origin":
-        origin && ALLOWED_ORIGINS.includes(origin) ? origin : PRODUCTION_DOMAIN,
+      "Access-Control-Allow-Origin": origin!,
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PATCH, DELETE",
       "Access-Control-Allow-Headers": "Content-Type, Authorization, X-TRPC",
       "Access-Control-Max-Age": "86400",
-    };
+    } as const;
 
     // Handle CORS preflight
     if (req.method === "OPTIONS") {
