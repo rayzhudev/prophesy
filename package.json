@@ -3,12 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "web",
-    "backend"
+    "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --cwd backend dev & bun run --cwd web dev",
-    "build": "bun run --cwd web build && bun run --cwd backend build"
+    "dev": "bun run --cwd packages/backend dev & bun run --cwd packages/web dev",
+    "build:api": "cd packages/api && bun build ./router.ts --outdir ./dist",
+    "build:web": "cd packages/web && bun run build",
+    "build:backend": "cd packages/backend && bun build ./index.ts --outdir ./dist",
+    "build": "bun run build:api && bun run build:web && bun run build:backend",
+    "start:web": "cd packages/web && bun run start",
+    "start:backend": "cd packages/backend && bun run dist/index.js"
   }
 }

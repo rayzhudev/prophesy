@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd ../.. && bun run build:api && cd packages/backend && bun run build"
+
+[deploy]
+startCommand = "bun run start"
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
+
+[variables]
+NODE_ENV = "production"
