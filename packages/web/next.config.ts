@@ -14,11 +14,7 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: "/api/:path*",
-        destination: `https://${cleanBackendUrl}/:path*`,
-      },
-      {
-        source: "/trpc/:path*",
+        source: "/api/trpc/:path*",
         destination: `https://${cleanBackendUrl}/trpc/:path*`,
       },
     ];
