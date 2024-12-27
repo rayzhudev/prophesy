@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { API_URL, getApiUrl } from "@/config/api";
+import { API_URL } from "@/config/api";
+import { trpc } from "@/utils/trpc";
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -9,40 +10,20 @@ export default function Home() {
   const [testUrl, setTestUrl] = useState<string>(API_URL);
   const [testResponse, setTestResponse] = useState("");
 
+  const submitText = trpc.submitText.useMutation({
+    onSuccess: (data) => {
+      setSpacedText(data.text);
+      setText(""); // Clear the input after successful submission
+      console.log("Text sent successfully");
+    },
+    onError: (error) => {
+      console.error("Error sending text:", error);
+    },
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const url = getApiUrl("/submit-text");
-    console.log("Calling API at:", url);
-    console.log("Environment:", process.env.NODE_ENV);
-    console.log(
-      "NEXT_PUBLIC_BACKEND_URL:",
-      process.env.NEXT_PUBLIC_BACKEND_URL
-    );
-    console.log("API_URL:", API_URL);
-    console.log("Railway Private Domain:", process.env.RAILWAY_PRIVATE_DOMAIN);
-    console.log("Railway Port:", process.env.PORT);
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSpacedText(data.text);
-        setText(""); // Clear the input after successful submission
-        console.log("Text sent successfully");
-      } else {
-        console.error("API error:", response.status, await response.text());
-      }
-    } catch (error) {
-      console.error("Error sending text:", error);
-    }
+    submitText.mutate({ text });
   };
 
   const testApiConnection = async (e: React.FormEvent) => {

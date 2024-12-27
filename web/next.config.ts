@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         destination:
           "https://${{prophesy-backend.RAILWAY_PUBLIC_DOMAIN}}/:path*",
       },
+      {
+        source: "/trpc/:path*",
+        destination:
+          "https://${{prophesy-backend.RAILWAY_PUBLIC_DOMAIN}}/trpc/:path*",
+      },
     ];
   },
 };

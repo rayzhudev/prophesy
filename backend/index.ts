@@ -1,4 +1,6 @@
 import { PORT, PRODUCTION_DOMAIN, ALLOWED_ORIGINS } from "./constants";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "./trpc";
 
 Bun.serve({
   port: PORT,
@@ -8,8 +10,9 @@ Bun.serve({
     const corsHeaders = {
       "Access-Control-Allow-Origin":
         origin && ALLOWED_ORIGINS.includes(origin) ? origin : PRODUCTION_DOMAIN,
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "POST, GET, OPTIONS, PATCH, DELETE",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-TRPC",
+      "Access-Control-Max-Age": "86400",
     };
 
     // Handle CORS preflight
@@ -20,6 +23,22 @@ Bun.serve({
     try {
       const url = new URL(req.url);
 
+      // Handle tRPC requests
+      if (url.pathname.startsWith("/trpc")) {
+        return fetchRequestHandler({
+          endpoint: "/trpc",
+          req,
+          router: appRouter,
+          createContext: () => ({}),
+          onError({ error }) {
+            console.error("tRPC error:", error);
+          },
+          responseMeta() {
+            return { headers: corsHeaders };
+          },
+        });
+      }
+
       // Root endpoint
       if (url.pathname === "/" && req.method === "GET") {
         return Response.json(
@@ -28,7 +47,7 @@ Bun.serve({
         );
       }
 
-      // Submit text endpoint
+      // Submit text endpoint (legacy)
       if (url.pathname === "/submit-text" && req.method === "POST") {
         const data = await req.json();
         const spacedText = data.text.split("").join(" ");
