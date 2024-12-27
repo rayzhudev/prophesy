@@ -15,8 +15,13 @@ export default function Home() {
     const url = `${API_URL}/submit-text`;
     console.log("Calling API at:", url);
     console.log("Environment:", process.env.NODE_ENV);
-    console.log("BACKEND_URL:", process.env.NEXT_PUBLIC_BACKEND_URL);
+    console.log(
+      "NEXT_PUBLIC_BACKEND_URL:",
+      process.env.NEXT_PUBLIC_BACKEND_URL
+    );
     console.log("API_URL:", API_URL);
+    console.log("Railway Private Domain:", process.env.RAILWAY_PRIVATE_DOMAIN);
+    console.log("Railway Port:", process.env.PORT);
 
     try {
       const response = await fetch(url, {
