@@ -1,5 +1,15 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination:
+          "https://${{prophesy-backend.RAILWAY_PUBLIC_DOMAIN}}/:path*",
+      },
+    ];
+  },
+};
 
 export default nextConfig;

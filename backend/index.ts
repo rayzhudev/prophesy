@@ -1,26 +1,21 @@
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+import { PORT, PRODUCTION_DOMAIN, ALLOWED_ORIGINS } from "./constants";
 
 Bun.serve({
   port: PORT,
-  hostname: "::",
+  hostname: "0.0.0.0",
   async fetch(req) {
-    // Handle CORS preflight
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-      });
-    }
-
-    // Set CORS headers for all responses
+    const origin = req.headers.get("Origin");
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin":
+        origin && ALLOWED_ORIGINS.includes(origin) ? origin : PRODUCTION_DOMAIN,
       "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
+
+    // Handle CORS preflight
+    if (req.method === "OPTIONS") {
+      return new Response(null, { headers: corsHeaders });
+    }
 
     try {
       const url = new URL(req.url);
@@ -57,4 +52,4 @@ Bun.serve({
   },
 });
 
-console.log(`Server running at http://[::]:${PORT}`);
+console.log(`Server running at http://0.0.0.0:${PORT}`);

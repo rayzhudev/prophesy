@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { API_URL } from "@/config/api";
+import { API_URL, getApiUrl } from "@/config/api";
 
 export default function Home() {
   const [text, setText] = useState("");
@@ -12,7 +12,7 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const url = `${API_URL}/submit-text`;
+    const url = getApiUrl("/submit-text");
     console.log("Calling API at:", url);
     console.log("Environment:", process.env.NODE_ENV);
     console.log(
