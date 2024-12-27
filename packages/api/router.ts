@@ -1,5 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
+import type { User, Tweet } from "./types";
 
 // Input schemas
 export const textInputSchema = z.object({
@@ -16,19 +17,6 @@ export const createTweetSchema = z.object({
   content: z.string(),
   userId: z.string(),
 });
-
-export interface User {
-  id: string;
-  username: string;
-  email: string;
-  tweets: Tweet[];
-}
-
-export interface Tweet {
-  id: string;
-  content: string;
-  userId: string;
-}
 
 // Initialize tRPC
 const t = initTRPC.create();

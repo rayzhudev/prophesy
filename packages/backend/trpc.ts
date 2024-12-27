@@ -23,6 +23,7 @@ export const router = t.router({
   createUser: t.procedure
     .input(createUserSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log("Creating user:", input);
       console.log("Backend received create user request:", input);
       try {
         const user = await ctx.prisma.user.create({
