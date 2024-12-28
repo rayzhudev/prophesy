@@ -70,5 +70,5 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 # Set working directory to web package
 WORKDIR /app/packages/web
 
-# Use the direct start command
-CMD ["bun", "run", "start"]
+# Use node to run the standalone server
+CMD ["node", "server.js"]
