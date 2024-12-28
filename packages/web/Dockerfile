@@ -48,7 +48,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/bun.lockb ./bun.lockb
 RUN mkdir -p packages/web
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/package.json ./packages/web/
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/* ./
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
 
 # Set proper permissions
@@ -67,8 +67,8 @@ ENV HOSTNAME "0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/ || exit 1
 
-# Set working directory to web package
-WORKDIR /app/packages/web
+# Set working directory to app root
+WORKDIR /app
 
 # Use node to run the standalone server
 CMD ["node", "server.js"]
