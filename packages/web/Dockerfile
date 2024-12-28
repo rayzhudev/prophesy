@@ -15,7 +15,7 @@ COPY packages/web/package.json ./packages/web/
 
 # Install dependencies with cache mounting for faster builds
 RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/deps,target=/app/node_modules \
-    bun install --frozen-lockfile
+    bun install
 
 # Rebuild the source code only when needed
 FROM base AS builder
