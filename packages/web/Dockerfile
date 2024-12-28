@@ -1,11 +1,8 @@
-FROM node:20-alpine AS base
-
-# Install bun globally in the base image
-RUN npm install -g bun
+FROM oven/bun:1 as base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apt-get update && apt-get install -y libc6
 WORKDIR /app
 
 # Copy only package files needed for installation
@@ -43,8 +40,8 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Create non-root user with minimal permissions
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs && \
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nextjs && \
     mkdir -p /app/.next/cache && \
     chown -R nextjs:nodejs /app
 
