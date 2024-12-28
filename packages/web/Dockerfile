@@ -14,7 +14,7 @@ COPY packages/api/package.json ./packages/api/
 COPY packages/web/package.json ./packages/web/
 
 # Install dependencies with cache mounting for faster builds
-RUN --mount=type=cache,target=/root/.bun \
+RUN --mount=type=cache,id=bun-cache \
     bun install --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -32,7 +32,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
 # Build using the same command as local development
-RUN --mount=type=cache,target=/root/.bun \
+RUN --mount=type=cache,id=bun-build-cache \
     bun run build:railway-web
 
 # Production image, copy all the files and run next
