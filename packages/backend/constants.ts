@@ -1,10 +1,7 @@
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // Production domains
-const PRODUCTION_DOMAINS = [
-  "https://prophesy.fun",
-  "prophesy.fun",
-] as const;
+const PRODUCTION_DOMAINS = ["https://prophesy.fun", "prophesy.fun"] as const;
 
 // Local development domains with common ports
 export const LOCAL_DOMAINS = [

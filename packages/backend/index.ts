@@ -43,13 +43,15 @@ Bun.serve({
         console.log("Body:", body || null);
 
         try {
+          const requestHeaders = new Headers(req.headers);
+          requestHeaders.set("Content-Type", "application/json");
+
           const response = await fetchRequestHandler({
             endpoint: "/trpc",
             req: new Request(req.url, {
               method: req.method,
-              headers: req.headers,
+              headers: requestHeaders,
               body: req.method === "POST" ? req.body : undefined,
-              duplex: "half",
             }),
             router,
             createContext,
@@ -60,12 +62,9 @@ Bun.serve({
             batching: {
               enabled: true,
             },
-            responseMeta: () => ({
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-              },
-            }),
+            responseMeta: () => {
+              return { headers: corsHeaders };
+            },
           });
 
           console.log("\n[tRPC Server] Response:");
@@ -80,10 +79,7 @@ Bun.serve({
           const newResponse = new Response(response.body, {
             status: response.status,
             statusText: response.statusText,
-            headers: new Headers({
-              ...corsHeaders,
-              "Content-Type": "application/json",
-            }),
+            headers: corsHeaders,
           });
 
           return newResponse;
@@ -92,6 +88,7 @@ Bun.serve({
           if (error instanceof Error) {
             console.error("[tRPC Server] Error stack:", error.stack);
           }
+
           return new Response(
             JSON.stringify({
               error: "Internal Server Error",
@@ -99,10 +96,7 @@ Bun.serve({
             }),
             {
               status: 500,
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-              },
+              headers: corsHeaders,
             }
           );
         }
