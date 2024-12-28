@@ -17,6 +17,30 @@ export function getClient() {
             "Content-Type": "application/json",
           };
         },
+        async fetch(url, options = {}) {
+          console.log("[tRPC Client] Request URL:", url.toString());
+          console.log("[tRPC Client] Request Method:", options.method || "GET");
+          console.log("[tRPC Client] Request Headers:", options.headers);
+          console.log("[tRPC Client] Request Body:", options.body || null);
+
+          const response = await fetch(url, {
+            ...options,
+            headers: {
+              ...options.headers,
+              "Content-Type": "application/json",
+            },
+          });
+
+          console.log("[tRPC Client] Response Status:", response.status);
+          console.log(
+            "[tRPC Client] Response Headers:",
+            Object.fromEntries(response.headers.entries())
+          );
+          const responseBody = await response.clone().text();
+          console.log("[tRPC Client] Response Body:", responseBody);
+
+          return response;
+        },
       }),
     ],
   });

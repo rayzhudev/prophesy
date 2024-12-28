@@ -30,14 +30,35 @@ Bun.serve({
       const url = new URL(req.url);
 
       if (url.pathname.startsWith("/trpc")) {
+        console.log("\n[tRPC Server] Incoming Request:");
+        console.log("URL:", req.url);
+        console.log("Method:", req.method);
+        console.log("Headers:", Object.fromEntries(req.headers.entries()));
+        console.log("Pathname:", url.pathname);
+        console.log(
+          "Search Params:",
+          Object.fromEntries(url.searchParams.entries())
+        );
+        const body = await req.clone().text();
+        console.log("Body:", body || null);
+
         try {
           const response = await fetchRequestHandler({
             endpoint: "/trpc",
-            req,
+            req: new Request(req.url, {
+              method: req.method,
+              headers: req.headers,
+              body: req.method === "POST" ? req.body : undefined,
+              duplex: "half",
+            }),
             router,
             createContext,
             onError({ error }) {
-              console.error("tRPC error:", error);
+              console.error("[tRPC Server] Error in handler:", error);
+              console.error("[tRPC Server] Error stack:", error.stack);
+            },
+            batching: {
+              enabled: true,
             },
             responseMeta: () => ({
               headers: {
@@ -46,6 +67,15 @@ Bun.serve({
               },
             }),
           });
+
+          console.log("\n[tRPC Server] Response:");
+          console.log("Status:", response.status);
+          console.log(
+            "Headers:",
+            Object.fromEntries(response.headers.entries())
+          );
+          const responseBody = await response.clone().text();
+          console.log("Body:", responseBody);
 
           const newResponse = new Response(response.body, {
             status: response.status,
@@ -58,9 +88,15 @@ Bun.serve({
 
           return newResponse;
         } catch (error) {
-          console.error("tRPC handler error:", error);
+          console.error("[tRPC Server] Handler error:", error);
+          if (error instanceof Error) {
+            console.error("[tRPC Server] Error stack:", error.stack);
+          }
           return new Response(
-            JSON.stringify({ error: "Internal Server Error" }),
+            JSON.stringify({
+              error: "Internal Server Error",
+              details: error instanceof Error ? error.message : String(error),
+            }),
             {
               status: 500,
               headers: {
