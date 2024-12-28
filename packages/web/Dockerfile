@@ -48,7 +48,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/bun.lockb ./bun.lockb
 RUN mkdir -p packages/web
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/package.json ./packages/web/
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/packages/web ./packages/web
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
 
 # Set proper permissions
