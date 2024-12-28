@@ -5,36 +5,26 @@ FROM base AS deps
 RUN apt-get update && apt-get install -y libc6
 WORKDIR /app
 
-# Copy only package files needed for installation
-COPY package.json bun.lockb ./
-COPY packages/api/package.json ./packages/api/
-COPY packages/web/package.json ./packages/web/
-
-# Create directories for workspace packages
-RUN mkdir -p packages/api packages/web
+# Create workspace structure
+COPY . .
 
 # Install dependencies with cache mounting for faster builds
-RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/deps,target=/app/node_modules \
+RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/deps,target=/root/.bun \
     bun install
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 
-# Copy source files first
-COPY . .
-
-# Copy node_modules from deps stage
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/api/node_modules ./packages/api/node_modules
-COPY --from=deps /app/packages/web/node_modules ./packages/web/node_modules
+# Copy everything from deps stage
+COPY --from=deps /app ./
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
 # Build using the same command as local development
-RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/build,target=/app/.next \
+RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/build,target=/root/.bun \
     bun run build:railway-web
 
 # Production image, copy all the files and run next
