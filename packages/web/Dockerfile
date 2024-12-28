@@ -10,6 +10,9 @@ COPY package.json bun.lockb ./
 COPY packages/api/package.json ./packages/api/
 COPY packages/web/package.json ./packages/web/
 
+# Create directories for workspace packages
+RUN mkdir -p packages/api packages/web
+
 # Install dependencies with cache mounting for faster builds
 RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/deps,target=/app/node_modules \
     bun install
@@ -18,11 +21,13 @@ RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/deps,targe
 FROM base AS builder
 WORKDIR /app
 
-# Copy dependencies and source files
+# Copy source files first
+COPY . .
+
+# Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/api/node_modules ./packages/api/node_modules
 COPY --from=deps /app/packages/web/node_modules ./packages/web/node_modules
-COPY . .
 
 # Set environment variables
 ENV NEXT_TELEMETRY_DISABLED 1
