@@ -28,7 +28,12 @@ RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/build,targ
     bun run build:railway-web
 
 # Debug: Check the standalone output location
-RUN ls -la packages/web/.next/standalone/
+RUN echo "Checking .next directory structure:" && \
+    ls -la packages/web/.next/ && \
+    echo "\nChecking standalone directory:" && \
+    ls -la packages/web/.next/standalone/ && \
+    echo "\nChecking for server.js recursively:" && \
+    find packages/web/.next -name server.js
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -51,8 +56,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/bun.lockb ./bun.lockb
 RUN mkdir -p packages/web
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/package.json ./packages/web/
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/server.js ./
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/packages ./packages
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/* ./
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
 
 # Debug: List files to verify
