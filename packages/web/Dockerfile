@@ -37,18 +37,23 @@ ENV NEXT_TELEMETRY_DISABLED 1
 # Create non-root user with minimal permissions
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs nextjs && \
-    mkdir -p /app/.next/cache && \
+    mkdir -p /app/packages/web/.next/cache && \
     chown -R nextjs:nodejs /app
 
-# Copy only the necessary files
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./.next/static
+# Copy root package.json and workspace files
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/bun.lockb ./bun.lockb
+
+# Create web package directory and copy files
+RUN mkdir -p packages/web
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/package.json ./packages/web/
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/packages/web ./packages/web
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
 
 # Set proper permissions
 RUN chmod -R 550 /app && \
-    chmod -R 770 /app/.next/cache
+    chmod -R 770 /app/packages/web/.next/cache
 
 # Use non-root user
 USER nextjs
@@ -62,5 +67,8 @@ ENV HOSTNAME "0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/ || exit 1
 
-# Use the same start command as local development
-CMD ["bun", "run", "start:web"] 
+# Set working directory to web package
+WORKDIR /app/packages/web
+
+# Use the direct start command
+CMD ["bun", "run", "start"]
