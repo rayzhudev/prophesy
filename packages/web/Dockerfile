@@ -27,6 +27,9 @@ ENV NODE_ENV production
 RUN --mount=type=cache,id=s/cb43f723-8ac2-4090-970e-a327fa078ca3-/bun/build,target=/root/.bun \
     bun run build:railway-web
 
+# Debug: Check the standalone output location
+RUN ls -la packages/web/.next/standalone/
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
@@ -48,8 +51,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/bun.lockb ./bun.lockb
 RUN mkdir -p packages/web
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/package.json ./packages/web/
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/public ./packages/web/public
-COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/* ./
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/server.js ./
+COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/standalone/packages ./packages
 COPY --from=builder --chown=nextjs:nodejs /app/packages/web/.next/static ./packages/web/.next/static
+
+# Debug: List files to verify
+RUN ls -la /app/
+RUN ls -la /app/packages/web/
 
 # Set proper permissions
 RUN chmod -R 550 /app && \
