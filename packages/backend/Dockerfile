@@ -39,7 +39,7 @@ WORKDIR /app/packages/backend
 RUN bun run db:generate
 
 # Build the backend
-RUN bun build ./index.ts --outdir ./dist --target node \
+RUN bun build ./src/index.ts --outdir ./dist --target node \
     --external @prisma/client \
     --external prisma
 
