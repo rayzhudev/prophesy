@@ -14,8 +14,7 @@ export const createUserSchema = z.object({
 });
 
 export const createTweetSchema = z.object({
-  content: z.string(),
-  userId: z.string(),
+  content: z.string().min(1),
 });
 
 // Initialize tRPC
@@ -31,6 +30,9 @@ export const router = t.router({
   }),
   createTweet: t.procedure.input(createTweetSchema).mutation(() => {
     return {} as Tweet;
+  }),
+  getTweets: t.procedure.query(() => {
+    return [] as Tweet[];
   }),
 });
 
