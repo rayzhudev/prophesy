@@ -53,14 +53,45 @@ export default function Home() {
       refetchUsers();
       setTweetForm({ content: "", userId: "" });
     },
+    onError: (error) => {
+      console.error("Tweet creation error:", error);
+      const errorDetails = {
+        message: error.message,
+        shape: error.shape,
+        data: error.data,
+      };
+      console.error(
+        "Error creating tweet (structured):",
+        JSON.stringify(errorDetails, null, 2)
+      );
+      setError(
+        `Error creating tweet: ${
+          error.message
+        }\n\nFull error details:\n${JSON.stringify(errorDetails, null, 2)}`
+      );
+    },
   });
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     try {
-      console.log("Attempting to create user with data:", userForm);
-      await createUser.mutate(userForm);
+      console.log("=== Form Submission Debug ===");
+      console.log("Form Data:", userForm);
+      console.log("=== End Form Debug ===");
+
+      // Ensure all fields are strings
+      const input = {
+        username: String(userForm.username),
+        email: String(userForm.email),
+        password: String(userForm.password),
+      };
+
+      console.log("=== Mutation Input Debug ===");
+      console.log("Formatted input:", input);
+      console.log("=== End Mutation Debug ===");
+
+      await createUser.mutate(input);
     } catch (error) {
       console.error("Form submission catch block error:", error);
       setError(
@@ -68,6 +99,48 @@ export default function Home() {
           error instanceof Error ? error.message : String(error)
         }`
       );
+    }
+  };
+
+  const handleCreateTweet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!tweetForm.content.trim()) {
+      setError("Tweet content is required");
+      return;
+    }
+
+    if (!tweetForm.userId) {
+      setError("Please select a user");
+      return;
+    }
+
+    try {
+      console.log("=== Tweet Form Debug ===");
+      console.log("Form Data:", tweetForm);
+      console.log("=== End Form Debug ===");
+
+      // Format the data for tRPC
+      const tweetData = {
+        content: tweetForm.content.trim(),
+        userId: tweetForm.userId,
+      };
+
+      console.log("=== Tweet Mutation Debug ===");
+      console.log("Mutation Input:", tweetData);
+      console.log("=== End Mutation Debug ===");
+
+      // Call the mutation
+      const result = await createTweet.mutateAsync(tweetData);
+      console.log("Tweet created:", result);
+    } catch (error) {
+      console.error("Tweet submission error:", error);
+      if (error instanceof Error) {
+        setError(`Tweet submission error: ${error.message}`);
+      } else {
+        setError("An unknown error occurred while creating the tweet");
+      }
     }
   };
 
@@ -126,13 +199,7 @@ export default function Home() {
       {/* Create Tweet Form */}
       <div className="mb-8 p-4 border rounded-lg">
         <h2 className="text-xl font-semibold mb-4">Create Tweet</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            createTweet.mutate(tweetForm);
-          }}
-          className="space-y-4"
-        >
+        <form onSubmit={handleCreateTweet} className="space-y-4">
           <select
             value={tweetForm.userId}
             onChange={(e) =>
