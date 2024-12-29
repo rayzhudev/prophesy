@@ -1,10 +1,9 @@
 import express from "express";
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { router } from "./trpc.js";
-import { PORT, isOriginAllowed } from "./constants.js";
+import { PORT, isOriginAllowed, FRONTEND_API_KEY } from "./constants.js";
 import { createContext } from "./trpc.js";
-import { TRPCError } from "@trpc/server";
 import cors from "cors";
 
 // Initialize Express app
@@ -13,30 +12,49 @@ const app = express();
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Reject requests with no origin
-    if (!origin) {
-      callback(new Error("CORS Error: No origin provided"));
+    if (!origin || !isOriginAllowed(origin)) {
+      callback(new Error("Not allowed by CORS"));
       return;
     }
-
-    if (isOriginAllowed(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS Error: Origin not allowed"));
-    }
+    callback(null, true);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-TRPC"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-TRPC", "X-API-Key"],
   credentials: true,
   maxAge: 86400,
   preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
-// Use CORS middleware
+// Use CORS middleware first
 app.use(cors(corsOptions));
+
+// Error handling for CORS
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (err.message === "Not allowed by CORS") {
+    res.status(403).json({ error: "Origin not allowed" });
+  } else {
+    next(err);
+  }
+});
 
 // Body parsing middleware
 app.use(express.json());
+
+// API Key validation middleware
+app.use(((req: Request, res: Response, next: NextFunction) => {
+  // Skip API key check for CORS preflight
+  if (req.method === "OPTIONS") {
+    return next();
+  }
+
+  const apiKey = req.headers["x-api-key"];
+  if (!apiKey || apiKey !== FRONTEND_API_KEY) {
+    return res.status(403).json({ error: "Invalid API key" });
+  }
+
+  next();
+}) as express.RequestHandler);
 
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {

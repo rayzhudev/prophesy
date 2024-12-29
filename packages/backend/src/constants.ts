@@ -1,5 +1,11 @@
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
+// API key that only the frontend should know
+if (!process.env.FRONTEND_API_KEY) {
+  throw new Error("FRONTEND_API_KEY environment variable is required");
+}
+export const FRONTEND_API_KEY = process.env.FRONTEND_API_KEY;
+
 // Production domains
 const PRODUCTION_DOMAINS = ["https://prophesy.fun", "prophesy.fun"] as const;
 
