@@ -12,10 +12,10 @@ const app = express();
 
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
-  origin: (origin: string | undefined, callback) => {
-    // Always require an origin
+  origin: (origin, callback) => {
+    // Reject requests with no origin
     if (!origin) {
-      callback(new Error("CORS Error: Origin is required"));
+      callback(new Error("CORS Error: No origin provided"));
       return;
     }
 
@@ -25,10 +25,11 @@ const corsOptions: cors.CorsOptions = {
       callback(new Error("CORS Error: Origin not allowed"));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "X-TRPC"],
   credentials: true,
   maxAge: 86400,
+  preflightContinue: false,
 };
 
 // Use CORS middleware
@@ -45,7 +46,7 @@ app.use((req: Request, res: Response, next) => {
   console.log("\n[tRPC Server] Incoming Request:");
   console.log(`URL: http://localhost:${PORT}${req.originalUrl}`);
   console.log(`Method: ${req.method}`);
-  console.log("Headers:", JSON.stringify(req.headers, null, 2));
+  console.log("Headers:", req.headers);
   console.log(`Pathname: ${req.path}`);
   console.log("Search Params:", req.query);
   if (req.method !== "GET") {
@@ -78,12 +79,7 @@ app.use(
   "/trpc",
   trpcExpress.createExpressMiddleware({
     router,
-    createContext: async ({
-      req,
-      res,
-    }: trpcExpress.CreateExpressContextOptions) => {
-      return createContext();
-    },
+    createContext,
   })
 );
 
@@ -92,7 +88,16 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express with tRPC!");
 });
 
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error("Error:", err);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+});
+
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
