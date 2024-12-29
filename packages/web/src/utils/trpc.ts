@@ -1,5 +1,5 @@
 import { createTRPCReact } from "@trpc/react-query";
-import { httpBatchLink, httpLink } from "@trpc/client";
+import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@prophesy/api";
 import { getApiUrl } from "@/config/api";
 
@@ -12,18 +12,18 @@ export function getClient() {
     links: [
       httpLink({
         url: getApiUrl("/trpc"),
-        fetch(url, options) {
+        fetch(url: RequestInfo | URL, options: RequestInit = {}) {
           console.log("=== tRPC Client Debug ===");
           console.log("Request URL:", url.toString());
-          console.log("Request Method:", options.method);
-          console.log("Request Headers:", options.headers);
+          console.log("Request Method:", options.method || "GET");
+          console.log("Request Headers:", options.headers || {});
 
           if (options.body) {
             try {
               const parsedBody = JSON.parse(options.body as string);
               console.log("Request Body (raw):", options.body);
               console.log("Request Body (parsed):", parsedBody);
-            } catch (error) {
+            } catch {
               console.log("Could not parse request body:", options.body);
             }
           }
