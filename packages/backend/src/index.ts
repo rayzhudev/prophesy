@@ -2,7 +2,7 @@ import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { router } from "./trpc.js";
-import { PORT, isOriginAllowed, FRONTEND_API_KEY } from "./constants.js";
+import { PORT, isOriginAllowed } from "./constants.js";
 import { createContext } from "./trpc.js";
 import cors from "cors";
 
@@ -11,16 +11,16 @@ const app = express();
 
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    console.log("[CORS] Request origin:", origin);
-    if (!origin || !isOriginAllowed(origin)) {
-      callback(new Error("Not allowed by CORS"));
+  origin: (origin: string | undefined, callback) => {
+    if (isOriginAllowed(origin ?? null)) {
+      callback(null, true);
       return;
     }
-    callback(null, true);
+
+    callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-TRPC", "X-API-Key"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-TRPC"],
   credentials: true,
   maxAge: 86400,
   preflightContinue: false,
@@ -41,21 +41,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Body parsing middleware
 app.use(express.json());
-
-// API Key validation middleware
-app.use(((req: Request, res: Response, next: NextFunction) => {
-  // Skip API key check for CORS preflight
-  if (req.method === "OPTIONS") {
-    return next();
-  }
-
-  const apiKey = req.headers["x-api-key"];
-  if (!apiKey || apiKey !== FRONTEND_API_KEY) {
-    return res.status(403).json({ error: "Invalid API key" });
-  }
-
-  next();
-}) as express.RequestHandler);
 
 // Request logging middleware
 app.use((req: Request, res: Response, next) => {

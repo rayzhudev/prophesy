@@ -3,14 +3,6 @@ import { httpLink } from "@trpc/client";
 import type { AppRouter } from "@prophesy/api";
 import { getApiUrl } from "@/config/api";
 
-// API key from environment
-if (!process.env.NEXT_PUBLIC_FRONTEND_API_KEY) {
-  throw new Error(
-    "NEXT_PUBLIC_FRONTEND_API_KEY environment variable is required"
-  );
-}
-export const FRONTEND_API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY;
-
 // Create tRPC client
 export const trpc = createTRPCReact<AppRouter>();
 
@@ -43,7 +35,6 @@ export function getClient() {
             headers: {
               ...options.headers,
               "content-type": "application/json",
-              "x-api-key": FRONTEND_API_KEY,
             },
           }).then(async (response) => {
             console.log("=== tRPC Response Debug ===");

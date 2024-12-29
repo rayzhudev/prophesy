@@ -1,11 +1,5 @@
 export const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-// API key that only the frontend should know
-if (!process.env.FRONTEND_API_KEY) {
-  throw new Error("FRONTEND_API_KEY environment variable is required");
-}
-export const FRONTEND_API_KEY = process.env.FRONTEND_API_KEY;
-
 // Production domains
 const PRODUCTION_DOMAINS = ["https://prophesy.fun", "prophesy.fun"] as const;
 
@@ -25,6 +19,6 @@ export const ALLOWED_ORIGINS = [
 
 // Helper to check if origin is allowed
 export const isOriginAllowed = (origin: string | null): boolean => {
-  if (!origin) return false; // Reject requests with no origin
+  if (!origin) return true; // Allow same-origin requests (no origin header)
   return ALLOWED_ORIGINS.includes(origin as any);
 };

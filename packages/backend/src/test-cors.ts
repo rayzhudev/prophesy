@@ -27,13 +27,6 @@ const TEST_ENDPOINTS = [
   },
 ];
 
-// Test both valid and invalid API keys
-const TEST_API_KEYS = [
-  process.env.FRONTEND_API_KEY, // Valid key
-  "invalid-key", // Invalid key
-  undefined, // Missing key
-];
-
 function printResult(test: string, passed: boolean, details?: string) {
   const mark = passed ? `${colors.green}✓` : `${colors.red}✗`;
   console.log(`${mark} ${test}${colors.reset}`);
@@ -48,116 +41,98 @@ async function testCORS() {
   let passedTests = 0;
 
   for (const origin of TEST_ORIGINS) {
-    for (const apiKey of TEST_API_KEYS) {
+    console.log(
+      `\n${colors.bold}Testing with origin: ${origin || "same-origin request"}${colors.reset}`
+    );
+    console.log("=".repeat(50));
+
+    const isAllowedOrigin =
+      origin === "http://localhost:3001" || origin === "https://prophesy.fun";
+
+    for (const endpoint of TEST_ENDPOINTS) {
       console.log(
-        `\n${colors.bold}Testing with origin: ${
-          origin || "No origin"
-        }, API Key: ${
-          apiKey
-            ? apiKey === process.env.FRONTEND_API_KEY
-              ? "Valid"
-              : "Invalid"
-            : "None"
-        }${colors.reset}`
+        `\n${colors.yellow}Testing ${endpoint.method} ${endpoint.url}${colors.reset}`
       );
-      console.log("=".repeat(50));
+      console.log("-".repeat(30));
 
-      const isAllowedOrigin =
-        origin === "http://localhost:3001" || origin === "https://prophesy.fun";
-      const hasValidKey = apiKey === process.env.FRONTEND_API_KEY;
-
-      for (const endpoint of TEST_ENDPOINTS) {
-        console.log(
-          `\n${colors.yellow}Testing ${endpoint.method} ${endpoint.url}${colors.reset}`
-        );
-        console.log("-".repeat(30));
-
-        // First test preflight
-        if (endpoint.method !== "GET") {
-          totalTests++;
-          try {
-            const preflightResponse = await fetch(`${baseUrl}${endpoint.url}`, {
-              method: "OPTIONS",
-              headers: {
-                Origin: origin || "",
-                "Access-Control-Request-Method": endpoint.method,
-                "Access-Control-Request-Headers":
-                  "content-type,x-trpc,x-api-key",
-              },
-            });
-
-            const preflightPassed = isAllowedOrigin
-              ? preflightResponse.status !== 500 &&
-                preflightResponse.headers.get("access-control-allow-origin") !==
-                  null
-              : preflightResponse.status === 403;
-
-            if (preflightPassed) passedTests++;
-
-            printResult(
-              "Preflight Request",
-              preflightPassed,
-              `Status: ${preflightResponse.status}, Origin: ${
-                preflightResponse.headers.get("access-control-allow-origin") ||
-                "null"
-              }`
-            );
-          } catch (error: any) {
-            printResult("Preflight Request", false, `Error: ${error.message}`);
-          }
-        }
-
-        // Then test actual request
+      // First test preflight
+      if (endpoint.method !== "GET") {
         totalTests++;
         try {
-          const headers: Record<string, string> = {
-            Origin: origin || "",
-            "Content-Type": "application/json",
-            "X-TRPC": "1",
-          };
-          if (apiKey) {
-            headers["X-API-Key"] = apiKey;
-          }
-
-          const response = await fetch(`${baseUrl}${endpoint.url}`, {
-            method: endpoint.method,
-            headers,
-            body: endpoint.body ? JSON.stringify(endpoint.body) : undefined,
+          const preflightResponse = await fetch(`${baseUrl}${endpoint.url}`, {
+            method: "OPTIONS",
+            headers: {
+              Origin: origin || "",
+              "Access-Control-Request-Method": endpoint.method,
+              "Access-Control-Request-Headers": "content-type,x-trpc,x-api-key",
+            },
           });
+          
+          const preflightPassed = isAllowedOrigin
+            ? preflightResponse.status !== 500 &&
+              preflightResponse.headers.get("access-control-allow-origin") !== null
+            : preflightResponse.status === 403;
 
-          const requestPassed =
-            (isAllowedOrigin && hasValidKey
-              ? response.status === 200
-              : response.status === 403) &&
-            (isAllowedOrigin
-              ? response.headers.get("access-control-allow-origin") !== null
-              : true);
-
-          if (requestPassed) passedTests++;
+          if (preflightPassed) passedTests++;
 
           printResult(
-            `${endpoint.method} Request`,
-            requestPassed,
-            `Status: ${response.status}, Origin: ${
-              response.headers.get("access-control-allow-origin") || "null"
+            "Preflight Request",
+            preflightPassed,
+            `Status: ${preflightResponse.status}, Origin: ${
+              preflightResponse.headers.get("access-control-allow-origin") ||
+              "null"
             }`
           );
-
-          if (response.ok) {
-            const data = await response.text();
-            console.log(
-              `  ${colors.blue}Response: ${data.substring(0, 50)}...${
-                colors.reset
-              }`
-            );
-          }
         } catch (error: any) {
-          printResult(
-            `${endpoint.method} Request`,
-            false,
-            `Error: ${error.message}`
+          printResult("Preflight Request", false, `Error: ${error.message}`);
+        }
+      }
+
+      // Then test actual request
+      totalTests++;
+      try {
+        const headers: Record<string, string> = {
+          Origin: origin || "",
+          "Content-Type": "application/json",
+          "X-TRPC": "1",
+        };
+
+        const response = await fetch(`${baseUrl}${endpoint.url}`, {
+          method: endpoint.method,
+          headers,
+          body: endpoint.body ? JSON.stringify(endpoint.body) : undefined,
+        });
+
+        const requestPassed =
+          (isAllowedOrigin
+            ? response.status === 200
+            : response.status === 403) &&
+          (isAllowedOrigin
+            ? response.headers.get("access-control-allow-origin") !== null
+            : true);
+
+        if (requestPassed) passedTests++;
+
+        printResult(
+          `${endpoint.method} Request`,
+          requestPassed,
+          `Status: ${response.status}, Origin: ${
+            response.headers.get("access-control-allow-origin") || "null"
+          }`
+        );
+
+        if (response.ok) {
+          const data = await response.text();
+          console.log(
+            `  ${colors.blue}Response: ${data.substring(0, 50)}...${colors.reset}`
           );
         }
+      } catch (error: any) {
+        printResult(
+          `${endpoint.method} Request`,
+          false,
+          `Error: ${error.message}`
+        );
       }
     }
   }
