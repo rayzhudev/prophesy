@@ -34,7 +34,6 @@ export const router = t.router({
             email: input.email,
             password: input.password,
           },
-          include: { tweets: true },
         });
         console.log("Created user:", user);
         return user;
@@ -45,11 +44,7 @@ export const router = t.router({
     }),
 
   getUsers: t.procedure.query(async ({ ctx }) => {
-    return ctx.prisma.user.findMany({
-      include: {
-        tweets: true,
-      },
-    });
+    return ctx.prisma.user.findMany();
   }),
 
   createTweet: t.procedure
@@ -60,13 +55,12 @@ export const router = t.router({
       console.log("Input type:", typeof input);
       console.log("Input keys:", Object.keys(input || {}));
       console.log("Content:", input?.content);
-      console.log("UserId:", input?.userId);
       console.log("=== End Tweet Debug ===");
 
-      if (!input?.content || !input?.userId) {
+      if (!input?.content) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Content and userId are required",
+          message: "Content is required",
         });
       }
 
@@ -74,10 +68,6 @@ export const router = t.router({
         const tweet = await ctx.prisma.tweet.create({
           data: {
             content: input.content,
-            userId: input.userId,
-          },
-          include: {
-            user: true,
           },
         });
         console.log("Created tweet:", tweet);
@@ -91,6 +81,14 @@ export const router = t.router({
         });
       }
     }),
+
+  getTweets: t.procedure.query(async ({ ctx }) => {
+    return ctx.prisma.tweet.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
 });
 
 export type { AppRouter };

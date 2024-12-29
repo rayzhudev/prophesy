@@ -13,14 +13,11 @@ model User {
   username  String   @unique
   email     String   @unique
   password  String
-  tweets    Tweet[]
   createdAt DateTime @default(now())
 }
 
 model Tweet {
   id        String   @id @default(uuid())
   content   String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }
