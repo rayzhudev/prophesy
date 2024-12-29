@@ -13,16 +13,15 @@ const app = express();
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback) => {
-    // Always require an origin
     if (!origin) {
-      callback(new Error("CORS Error: Origin is required"));
+      callback(null, false); // Reject the request without throwing an error
       return;
     }
 
     if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS Error: Origin not allowed"));
+      callback(null, false); // Reject the request without throwing an error
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -33,6 +32,19 @@ const corsOptions: cors.CorsOptions = {
 
 // Use CORS middleware
 app.use(cors(corsOptions));
+
+// Error handler for CORS preflight
+app.use((err: any, req: Request, res: Response, next: Function) => {
+  if (err.name === "CORSError") {
+    res.status(403).json({
+      error: "Access Denied",
+      message:
+        "This API endpoint is not publicly accessible",
+    });
+  } else {
+    next(err);
+  }
+});
 
 // Body parsing middleware
 app.use(express.json());
