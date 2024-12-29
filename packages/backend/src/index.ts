@@ -13,9 +13,9 @@ const app = express();
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Always require an origin
     if (!origin) {
-      callback(null, true);
+      callback(new Error("CORS Error: Origin is required"));
       return;
     }
 

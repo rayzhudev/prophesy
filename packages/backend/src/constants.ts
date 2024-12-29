@@ -19,6 +19,6 @@ export const ALLOWED_ORIGINS = [
 
 // Helper to check if origin is allowed
 export const isOriginAllowed = (origin: string | null): boolean => {
-  if (!origin) return true; // Allow requests with no origin
+  if (!origin) return false; // Reject requests with no origin
   return ALLOWED_ORIGINS.includes(origin as any);
 };
