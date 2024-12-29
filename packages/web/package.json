@@ -15,7 +15,7 @@
     "@trpc/react-query": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "autoprefixer": "^10.0.1",
-    "next": "15.1.2",
+    "next": "^15.1.3",
     "postcss": "^8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

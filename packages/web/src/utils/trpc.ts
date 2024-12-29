@@ -18,10 +18,29 @@ export function getClient() {
           };
         },
         async fetch(url, options = {}) {
-          console.log("[tRPC Client] Request URL:", url.toString());
-          console.log("[tRPC Client] Request Method:", options.method || "GET");
-          console.log("[tRPC Client] Request Headers:", options.headers);
-          console.log("[tRPC Client] Request Body:", options.body || null);
+          console.log("=== tRPC Client Debug ===");
+          console.log("Request URL:", url.toString());
+          console.log("Request Method:", options.method);
+          console.log("Request Headers:", options.headers);
+
+          if (options.body) {
+            try {
+              const parsedBody = JSON.parse(options.body as string);
+              console.log("Request Body (parsed):", {
+                ...parsedBody,
+                input: parsedBody.input
+                  ? {
+                      type: typeof parsedBody.input,
+                      value: parsedBody.input,
+                    }
+                  : undefined,
+              });
+            } catch (e) {
+              console.log("Raw Request Body:", options.body);
+              console.log("Could not parse request body");
+            }
+          }
+          console.log("=== End Client Debug ===");
 
           const response = await fetch(url, {
             ...options,
@@ -31,13 +50,20 @@ export function getClient() {
             },
           });
 
-          console.log("[tRPC Client] Response Status:", response.status);
+          console.log("=== tRPC Response Debug ===");
+          console.log("Response Status:", response.status);
           console.log(
-            "[tRPC Client] Response Headers:",
+            "Response Headers:",
             Object.fromEntries(response.headers.entries())
           );
-          const responseBody = await response.clone().text();
-          console.log("[tRPC Client] Response Body:", responseBody);
+          const responseText = await response.clone().text();
+          try {
+            const parsedResponse = JSON.parse(responseText);
+            console.log("Response Body (parsed):", parsedResponse);
+          } catch {
+            console.log("Response Body (raw):", responseText);
+          }
+          console.log("=== End Response Debug ===");
 
           return response;
         },
