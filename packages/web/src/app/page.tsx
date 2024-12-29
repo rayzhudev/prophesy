@@ -106,10 +106,6 @@ export default function Home() {
     e.preventDefault();
     setError(null);
 
-    console.log("=== Initial Form State ===");
-    console.log("Tweet Form:", tweetForm);
-    console.log("=== End Initial State ===");
-
     if (!tweetForm.content.trim()) {
       setError("Tweet content is required");
       return;
@@ -121,21 +117,23 @@ export default function Home() {
     }
 
     try {
-      // Create a new object to avoid any potential reactivity issues
+      console.log("=== Tweet Form Debug ===");
+      console.log("Form Data:", tweetForm);
+      console.log("=== End Form Debug ===");
+
+      // Format the data for tRPC
       const tweetData = {
         content: tweetForm.content.trim(),
         userId: tweetForm.userId,
       };
 
-      console.log("=== Tweet Submission Debug ===");
-      console.log("Tweet Form Data:", tweetForm);
-      console.log("Formatted input:", tweetData);
-      console.log("Content type:", typeof tweetData.content);
-      console.log("UserId type:", typeof tweetData.userId);
-      console.log("=== End Tweet Debug ===");
+      console.log("=== Tweet Mutation Debug ===");
+      console.log("Mutation Input:", tweetData);
+      console.log("=== End Mutation Debug ===");
 
-      // Use the mutation
-      await createTweet.mutate(tweetData);
+      // Call the mutation
+      const result = await createTweet.mutateAsync(tweetData);
+      console.log("Tweet created:", result);
     } catch (error) {
       console.error("Tweet submission error:", error);
       if (error instanceof Error) {
