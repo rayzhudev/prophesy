@@ -12,6 +12,7 @@ const app = express();
 // CORS configuration
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
+    console.log("[CORS] Request origin:", origin);
     if (!origin || !isOriginAllowed(origin)) {
       callback(new Error("Not allowed by CORS"));
       return;
