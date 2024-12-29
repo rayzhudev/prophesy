@@ -4,17 +4,13 @@ import { useState } from "react";
 import { trpc } from "../utils/trpc";
 
 export default function Home() {
-  const [userForm, setUserForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
-  const [error, setError] = useState<string | null>(null);
-
   const [tweetForm, setTweetForm] = useState({
     content: "",
     userId: "",
   });
+  const [error, setError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const isDev = process.env.NODE_ENV === "development";
 
   const { data: users, refetch: refetchUsers } = trpc.getUsers.useQuery(
     undefined,
@@ -24,30 +20,7 @@ export default function Home() {
       staleTime: 0,
     }
   );
-  const createUser = trpc.createUser.useMutation({
-    onSuccess: () => {
-      setError(null);
-      refetchUsers();
-      setUserForm({ username: "", email: "", password: "" });
-    },
-    onError: (error) => {
-      console.error("Detailed error object:", error);
-      const errorDetails = {
-        message: error.message,
-        shape: error.shape,
-        data: error.data,
-      };
-      console.error(
-        "Error creating user (structured):",
-        JSON.stringify(errorDetails, null, 2)
-      );
-      setError(
-        `Error creating user: ${
-          error.message
-        }\n\nFull error details:\n${JSON.stringify(errorDetails, null, 2)}`
-      );
-    },
-  });
+
   const createTweet = trpc.createTweet.useMutation({
     onSuccess: () => {
       refetchUsers();
@@ -71,36 +44,6 @@ export default function Home() {
       );
     },
   });
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      console.log("=== Form Submission Debug ===");
-      console.log("Form Data:", userForm);
-      console.log("=== End Form Debug ===");
-
-      // Ensure all fields are strings
-      const input = {
-        username: String(userForm.username),
-        email: String(userForm.email),
-        password: String(userForm.password),
-      };
-
-      console.log("=== Mutation Input Debug ===");
-      console.log("Formatted input:", input);
-      console.log("=== End Mutation Debug ===");
-
-      await createUser.mutate(input);
-    } catch (error) {
-      console.error("Form submission catch block error:", error);
-      setError(
-        `Form submission error: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    }
-  };
 
   const handleCreateTweet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,109 +88,204 @@ export default function Home() {
   };
 
   return (
-    <main className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Twitter Clone</h1>
-
-      {/* Create User Form */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create User</h2>
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h3 className="font-semibold text-red-700 mb-2">Error Details:</h3>
-            <pre className="whitespace-pre-wrap text-sm text-red-600 font-mono overflow-x-auto">
+    <main
+      className={`min-h-screen ${
+        isDarkMode ? "bg-gray-900" : "bg-gray-50"
+      } text-white transition-colors duration-200`}
+    >
+      {/* Main Content */}
+      <div
+        className={`max-w-2xl mx-auto border-x border-amber-500/20 min-h-screen ${
+          !isDarkMode && "bg-white text-gray-900"
+        }`}
+      >
+        {/* Sticky Header */}
+        <header
+          className={`sticky top-0 z-10 ${
+            isDarkMode ? "bg-gray-900/80" : "bg-white/80"
+          } backdrop-blur-md border-b border-amber-500/30 p-4`}
+        >
+          <div className="flex items-center justify-between">
+            <h2
+              className={`text-xl font-bold ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Prophesy
+            </h2>
+            {isDev && (
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
+              >
+                <span
+                  className={`text-sm ${
+                    isDarkMode ? "text-amber-400" : "text-amber-600"
+                  }`}
+                >
+                  {isDarkMode ? "☀️ Light" : "🌙 Dark"}
+                </span>
+              </button>
+            )}
+          </div>
+          {error && (
+            <div className="mt-2 p-2 bg-red-900/50 border border-red-700 rounded text-sm text-red-400">
               {error}
-            </pre>
-          </div>
-        )}
-        <form onSubmit={handleCreateUser} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Username"
-            value={userForm.username}
-            onChange={(e) =>
-              setUserForm({ ...userForm, username: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={userForm.email}
-            onChange={(e) =>
-              setUserForm({ ...userForm, email: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={userForm.password}
-            onChange={(e) =>
-              setUserForm({ ...userForm, password: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Create User
-          </button>
-        </form>
-      </div>
-
-      {/* Create Tweet Form */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">Create Tweet</h2>
-        <form onSubmit={handleCreateTweet} className="space-y-4">
-          <select
-            value={tweetForm.userId}
-            onChange={(e) =>
-              setTweetForm({ ...tweetForm, userId: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          >
-            <option value="">Select User</option>
-            {users?.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.username}
-              </option>
-            ))}
-          </select>
-          <textarea
-            placeholder="Tweet content"
-            value={tweetForm.content}
-            onChange={(e) =>
-              setTweetForm({ ...tweetForm, content: e.target.value })
-            }
-            className="w-full p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Create Tweet
-          </button>
-        </form>
-      </div>
-
-      {/* Display Users and their Tweets */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Users and Tweets</h2>
-        {users?.map((user) => (
-          <div key={user.id} className="p-4 border rounded-lg">
-            <h3 className="font-semibold">
-              {user.username} ({user.email})
-            </h3>
-            <div className="mt-2 space-y-2">
-              {user.tweets.map((tweet) => (
-                <div key={tweet.id} className="p-2 bg-gray-50 rounded">
-                  {tweet.content}
-                </div>
-              ))}
             </div>
-          </div>
-        ))}
+          )}
+        </header>
+
+        {/* Tweet Composer */}
+        <div
+          className={`border-b border-amber-500/20 p-4 ${
+            !isDarkMode && "text-gray-900"
+          }`}
+        >
+          <form onSubmit={handleCreateTweet} className="space-y-4">
+            <div className="flex items-start space-x-4">
+              <div
+                className={`w-12 h-12 rounded-full ${
+                  isDarkMode ? "bg-gray-600" : "bg-gray-200"
+                } ring-2 ring-amber-500/20`}
+              ></div>
+              <div className="flex-1">
+                <select
+                  value={tweetForm.userId}
+                  onChange={(e) =>
+                    setTweetForm({ ...tweetForm, userId: e.target.value })
+                  }
+                  className={`w-full ${
+                    isDarkMode
+                      ? "bg-gray-800 text-white"
+                      : "bg-gray-50 text-gray-900"
+                  } mb-2 p-2 border border-amber-500/30 rounded focus:border-amber-400 focus:ring-1 focus:ring-amber-400 focus:outline-none`}
+                >
+                  <option
+                    value=""
+                    className={isDarkMode ? "bg-gray-800" : "bg-gray-50"}
+                  >
+                    Select Prophet
+                  </option>
+                  {users?.map((user) => (
+                    <option
+                      key={user.id}
+                      value={user.id}
+                      className={isDarkMode ? "bg-gray-800" : "bg-gray-50"}
+                    >
+                      {user.username}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  placeholder="~~✨ Manifest your vision ✨~~"
+                  value={tweetForm.content}
+                  onChange={(e) =>
+                    setTweetForm({ ...tweetForm, content: e.target.value })
+                  }
+                  className={`w-full bg-transparent text-xl ${
+                    isDarkMode
+                      ? "placeholder-amber-500/40"
+                      : "placeholder-amber-600/40"
+                  } italic placeholder:italic outline-none resize-none focus:ring-0`}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-amber-500 text-gray-900 px-6 py-2 rounded-full font-bold hover:bg-amber-400 transition shadow-lg shadow-amber-500/20"
+              >
+                Manifest
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Tweet Feed */}
+        <div className="divide-y divide-amber-500/20">
+          {users?.map((user) =>
+            user.tweets.map((tweet) => (
+              <article
+                key={tweet.id}
+                className={`p-4 ${
+                  isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-amber-50/50"
+                } transition cursor-pointer`}
+              >
+                <div className="flex space-x-4">
+                  <div
+                    className={`w-12 h-12 rounded-full ${
+                      isDarkMode ? "bg-gray-600" : "bg-gray-200"
+                    } flex-shrink-0 ring-2 ring-amber-500/20`}
+                  ></div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span
+                        className={`font-bold ${
+                          isDarkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {user.username}
+                      </span>
+                      <span className="text-gray-400">
+                        @{user.username.toLowerCase()}
+                      </span>
+                    </div>
+                    <p
+                      className={`mt-2 text-[15px] leading-normal ${
+                        isDarkMode ? "text-gray-100" : "text-gray-600"
+                      }`}
+                    >
+                      {tweet.content}
+                    </p>
+                    <div className="mt-3 flex items-center space-x-12">
+                      <button className="group flex items-center space-x-2">
+                        <div className="text-amber-500/40 hover:text-amber-400">
+                          <svg
+                            className="w-5 h-5 group-hover:bg-amber-500/10 rounded-full p-1"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M14.046 2.242l-4.148-.01h-.002c-4.374 0-7.8 3.427-7.8 7.802 0 4.098 3.186 7.206 7.465 7.37v3.828c0 .108.044.286.12.403.142.225.384.347.632.347.138 0 .277-.038.402-.118.264-.168 6.473-4.14 8.088-5.506 1.902-1.61 3.04-3.97 3.043-6.312v-.017c-.006-4.367-3.43-7.787-7.8-7.788zm3.787 12.972c-1.134.96-4.862 3.405-6.772 4.643V16.67c0-.414-.335-.75-.75-.75h-.396c-3.66 0-6.318-2.476-6.318-5.886 0-3.534 2.768-6.302 6.3-6.302l4.147.01h.002c3.532 0 6.3 2.766 6.302 6.296-.003 1.91-.942 3.844-2.514 5.176z" />
+                          </svg>
+                        </div>
+                        <span className="text-gray-400">3</span>
+                      </button>
+                      <button className="group flex items-center space-x-2">
+                        <div className="text-amber-500/40 hover:text-amber-400">
+                          <svg
+                            className="w-5 h-5 group-hover:bg-amber-500/10 rounded-full p-1"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M23.77 15.67c-.292-.293-.767-.293-1.06 0l-2.22 2.22V7.65c0-2.068-1.683-3.75-3.75-3.75h-5.85c-.414 0-.75.336-.75.75s.336.75.75.75h5.85c1.24 0 2.25 1.01 2.25 2.25v10.24l-2.22-2.22c-.293-.293-.768-.293-1.06 0s-.294.768 0 1.06l3.5 3.5c.145.147.337.22.53.22s.383-.072.53-.22l3.5-3.5c.294-.292.294-.767 0-1.06zm-10.66 3.28H7.26c-1.24 0-2.25-1.01-2.25-2.25V6.46l2.22 2.22c.148.147.34.22.532.22s.384-.073.53-.22c.293-.293.293-.768 0-1.06l-3.5-3.5c-.293-.294-.768-.294-1.06 0l-3.5 3.5c-.294.292-.294.767 0 1.06s.767.293 1.06 0l2.22-2.22V16.7c0 2.068 1.683 3.75 3.75 3.75h5.85c.414 0 .75-.336.75-.75s-.337-.75-.75-.75z" />
+                          </svg>
+                        </div>
+                        <span className="text-gray-400">5</span>
+                      </button>
+                      <button className="group flex items-center space-x-2">
+                        <div className="text-amber-500/40 hover:text-amber-400">
+                          <div className="w-6 h-6 group-hover:bg-amber-500/10 rounded-full flex items-center justify-center">
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 250 250"
+                              className="opacity-40 group-hover:opacity-100 transition-opacity"
+                              fill="currentColor"
+                            >
+                              <path d="M250 115.13L236.114 111.694C187.888 99.764 150.236 62.1075 138.306 13.8856L134.87 0H115.13L111.694 13.8856C99.764 62.1125 62.1075 99.764 13.8856 111.694L0 115.13V134.87L13.8856 138.305C62.1125 150.236 99.764 187.892 111.694 236.114L115.13 250H134.87L138.306 236.114C150.236 187.887 187.893 150.236 236.114 138.305L250 134.87V115.13ZM191.213 129.065C158.846 133.39 133.385 158.851 129.06 191.218L124.995 221.649L120.93 191.218C116.605 158.851 91.1437 133.39 58.7774 129.065L28.3462 125L58.7774 120.935C91.1437 116.61 116.605 91.1486 120.93 58.7823L124.995 28.3511L129.06 58.7823C133.385 91.1486 158.846 116.61 191.213 120.935L221.644 125L191.213 129.065Z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <span className="text-gray-400">12</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
       </div>
     </main>
   );
