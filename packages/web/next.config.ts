@@ -9,6 +9,76 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  async headers() {
+    const isProduction = process.env.NODE_ENV === "production";
+    const backendUrl = isProduction
+      ? process.env.NEXT_PUBLIC_BACKEND_URL
+      : "http://localhost:3000";
+
+    // Remove any protocol prefix and trailing slashes
+    const cleanBackendUrl = backendUrl
+      ?.replace(/^https?:\/\//, "")
+      .replace(/\/$/, "");
+
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Commenting out the enforced CSP during testing
+          /* {
+            key: "Content-Security-Policy",
+            value: [
+              // Default fallback
+              "default-src 'self'",
+
+              // Script sources - kept as locked down as possible
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com",
+
+              // Connect sources - carefully restricted to required endpoints
+              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems`,
+
+              // Frame sources
+              "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
+
+              // Child frame sources
+              "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+
+              // Prevent site from being embedded unless explicitly needed
+              "frame-ancestors 'none'",
+
+              // Other necessary defaults
+              "img-src 'self' data: https:",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+
+              // Base URI restriction
+              "base-uri 'self'",
+
+              // Form actions restriction
+              "form-action 'self'",
+            ].join("; "),
+          }, */
+          {
+            // Add Report-Only header for testing as recommended by Privy
+            key: "Content-Security-Policy-Report-Only",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com",
+              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems`,
+              "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
+              "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+              "frame-ancestors 'none'",
+              "img-src 'self' data: https:",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     const isProduction = process.env.NODE_ENV === "production";
     const backendUrl = isProduction
