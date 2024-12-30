@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bunx concurrently \"bun --cwd packages/api dev\" \"bun --cwd packages/backend dev\" \"bun --cwd packages/web dev\"",
+    "dev": "bunx concurrently \"bun --cwd packages/backend db:up\" \"bun --cwd packages/api dev\" \"bun --cwd packages/backend dev\" \"bun --cwd packages/web dev\"",
     "build:api": "cd packages/api && bun build ./router.ts --outdir ./dist",
     "build:web": "cd packages/web && bun run build",
     "build:backend": "cd packages/backend && bun run db:generate && bun build ./src/index.ts --outdir ./dist --target node",

@@ -1,0 +1,10 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer Circle (Eye Outline) -->
+  <circle cx="100" cy="100" r="80" stroke="#3b0764" stroke-width="4" fill="none" />
+  
+  <!-- Inner Circle (Pupil) -->
+  <circle cx="100" cy="100" r="30" fill="#3b0764" />
+  
+  <!-- Optional: Highlight (Reflection) -->
+  <circle cx="120" cy="80" r="10" fill="white" opacity="0.6" />
+</svg> 
