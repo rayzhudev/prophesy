@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Prophesy",
   description: "A text spacing app",
+  icons: {
+    icon: [{ url: "/sparks.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({
