@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    domains: ["pbs.twimg.com"], // Allow Twitter profile images
+  },
   webpack: (config, { dev, isServer }) => {
     // Enable React Refresh in development
     if (dev && !isServer) {
@@ -76,7 +79,7 @@ const nextConfig: NextConfig = {
               "frame-ancestors 'none'",
 
               // Other necessary defaults
-              "img-src 'self' data: https:",
+              "img-src 'self' data: https: https://pbs.twimg.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
 
@@ -97,7 +100,7 @@ const nextConfig: NextConfig = {
               "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
               "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
               "frame-ancestors 'none'",
-              "img-src 'self' data: https:",
+              "img-src 'self' data: https: https://pbs.twimg.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' data: https://fonts.gstatic.com",
               "base-uri 'self'",

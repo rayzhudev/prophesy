@@ -7,17 +7,59 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Define your models here
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
+  id        String   @id  // Privy DID
   createdAt DateTime @default(now())
+  authType String   @db.VarChar(20)  // "twitter_oauth"
+  
+  // Required one-to-one relations
+  twitter   TwitterAccount?
+  wallet    Wallet?
+  tweets    Tweet[]
+}
+
+model TwitterAccount {
+  id                    String   @id @default(uuid())
+  user                  User?     @relation(fields: [userId], references: [id])
+  userId                String   @unique  // Ensures one-to-one
+  
+  twitterId            String   @unique @db.VarChar(30)
+  username              String   @db.VarChar(15)  // Twitter's max length
+  name                  String   @db.VarChar(50)  // Twitter's max length
+  profilePictureUrl   String   @db.VarChar(512)
+  firstVerifiedAt     DateTime
+  latestVerifiedAt    DateTime
+  
+  // Audit timestamps
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([twitterId])
+}
+
+model Wallet {
+  id            String   @id @default(uuid())
+  user          User?     @relation(fields: [userId], references: [id])
+  userId        String   @unique  // Ensures one-to-one
+  
+  address       String   @unique @db.Char(42)  // Ethereum address length
+  walletType   String   @db.VarChar(20)  // "privy"
+  
+  // Audit timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([address])
 }
 
 model Tweet {
   id        String   @id @default(uuid())
-  content   String
+  content   String   @db.VarChar(280)  // Twitter's max length
   createdAt DateTime @default(now())
+  
+  // User relation
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String
+
+  @@index([userId])
 }
