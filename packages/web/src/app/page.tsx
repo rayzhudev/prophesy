@@ -1,13 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { usePrivy } from "@privy-io/react-auth";
 import { trpc } from "../utils/trpc";
+import Image from "next/image";
 
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const isDev = process.env.NODE_ENV === "development";
+  const { login, authenticated, user, ready } = usePrivy();
+
+  useEffect(() => {
+    if (ready && user) {
+      console.log("=== Privy User Information ===");
+      console.log("User ID:", user.id);
+      console.log("Email:", user.email);
+      console.log("Google:", user.google);
+      console.log("Twitter:", user.twitter);
+      console.log("Discord:", user.discord);
+      console.log("GitHub:", user.github);
+      console.log("Wallet Addresses:", user.wallet?.address);
+      console.log("Linked Accounts:", user.linkedAccounts);
+      const smartWallet = user.linkedAccounts.find((account) => account.type === 'smart_wallet');
+      console.log("Smart Wallet Address:", smartWallet?.address);
+      console.log("Smart Wallet Type:", smartWallet?.type);
+      console.log("Full User Object:", JSON.stringify(user, null, 2));
+      console.log("=== End User Information ===");
+    }
+  }, [ready, user]);
 
   const { data: tweets, refetch: refetchTweets } = trpc.getTweets.useQuery(
     undefined,
@@ -70,45 +90,21 @@ export default function Home() {
   };
 
   return (
-    <main
-      className={`min-h-screen ${
-        isDarkMode ? "bg-gray-900" : "bg-gray-50"
-      } text-white transition-colors duration-200`}
-    >
+    <main className="min-h-screen bg-gray-50 text-gray-900 relative">
       {/* Main Content */}
-      <div
-        className={`max-w-2xl mx-auto border-x border-amber-500/20 min-h-screen ${
-          !isDarkMode && "bg-white text-gray-900"
-        }`}
-      >
+      <div className="max-w-2xl mx-auto border-x border-amber-500/20 min-h-screen bg-white">
         {/* Sticky Header */}
-        <header
-          className={`sticky top-0 z-10 ${
-            isDarkMode ? "bg-gray-900/80" : "bg-white/80"
-          } backdrop-blur-md border-b border-amber-500/30 p-4`}
-        >
+        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-amber-500/30 p-4">
           <div className="flex items-center justify-between">
-            <h2
-              className={`text-xl font-bold ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
-            >
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
+              <Image
+                src="/logo-primary.svg"
+                width={48}
+                height={48}
+                alt="Prophesy Logo"
+              />
               Prophesy
             </h2>
-            {isDev && (
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
-              >
-                <span
-                  className={`text-sm ${
-                    isDarkMode ? "text-amber-400" : "text-amber-600"
-                  }`}
-                >
-                  {isDarkMode ? "☀️ Light" : "🌙 Dark"}
-                </span>
-              </button>
-            )}
           </div>
           {error && (
             <div className="mt-2 p-2 bg-red-900/50 border border-red-700 rounded text-sm text-red-400">
@@ -118,28 +114,16 @@ export default function Home() {
         </header>
 
         {/* Tweet Composer */}
-        <div
-          className={`border-b border-amber-500/20 p-4 ${
-            !isDarkMode && "text-gray-900"
-          }`}
-        >
+        <div className="border-b border-amber-500/20 p-4 text-gray-900">
           <form onSubmit={handleCreateTweet} className="space-y-4">
             <div className="flex items-start space-x-4">
-              <div
-                className={`w-12 h-12 rounded-full ${
-                  isDarkMode ? "bg-gray-600" : "bg-gray-200"
-                } ring-2 ring-amber-500/20`}
-              ></div>
+              <div className="w-12 h-12 rounded-full bg-gray-200 ring-2 ring-amber-500/20"></div>
               <div className="flex-1">
                 <textarea
                   placeholder="~~✨ Manifest your vision ✨~~"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  className={`w-full bg-transparent text-xl ${
-                    isDarkMode
-                      ? "placeholder-amber-500/40"
-                      : "placeholder-amber-600/40"
-                  } italic placeholder:italic outline-none resize-none focus:ring-0`}
+                  className="w-full bg-transparent text-xl placeholder-amber-500/40 italic placeholder:italic outline-none resize-none focus:ring-0"
                   rows={3}
                 />
               </div>
@@ -147,7 +131,7 @@ export default function Home() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="bg-amber-500 text-gray-900 px-6 py-2 rounded-full font-bold hover:bg-amber-400 transition shadow-lg shadow-amber-500/20"
+                className="bg-gray-600 text-white px-6 py-2 rounded-full font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20"
               >
                 Manifest
               </button>
@@ -160,31 +144,17 @@ export default function Home() {
           {tweets?.map((tweet) => (
             <article
               key={tweet.id}
-              className={`p-4 ${
-                isDarkMode ? "hover:bg-gray-800/50" : "hover:bg-amber-50/50"
-              } transition cursor-pointer`}
+              className="p-4 hover:bg-amber-50 transition cursor-pointer"
             >
               <div className="flex space-x-4">
-                <div
-                  className={`w-12 h-12 rounded-full ${
-                    isDarkMode ? "bg-gray-600" : "bg-gray-200"
-                  } flex-shrink-0 ring-2 ring-amber-500/20`}
-                ></div>
+                <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0 ring-2 ring-amber-500/20"></div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span
-                      className={`font-bold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
+                    <span className="font-bold text-gray-900">
                       Anonymous Prophet
                     </span>
                   </div>
-                  <p
-                    className={`mt-2 text-[15px] leading-normal ${
-                      isDarkMode ? "text-gray-100" : "text-gray-600"
-                    }`}
-                  >
+                  <p className="mt-2 text-[15px] leading-normal text-gray-600">
                     {tweet.content}
                   </p>
                   <div className="mt-3 flex items-center space-x-12">
@@ -234,6 +204,22 @@ export default function Home() {
             </article>
           ))}
         </div>
+      </div>
+
+      {/* Privy Login Button - Fixed Bottom Right */}
+      <div className="fixed bottom-6 right-6">
+        {!authenticated ? (
+          <button
+            onClick={login}
+            className="bg-gray-600 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20 flex items-center space-x-2"
+          >
+            <span>Log In</span>
+          </button>
+        ) : (
+          <div className="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-full font-medium border border-amber-500/20">
+            Connected as {user?.twitter?.username || "Anonymous"}
+          </div>
+        )}
       </div>
     </main>
   );
