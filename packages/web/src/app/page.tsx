@@ -98,7 +98,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3">
               <Image
-                src="/logo-primary.svg"
+                src="/sparks.svg"
                 width={48}
                 height={48}
                 alt="Prophesy Logo"

@@ -21,7 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             appearance: {
               theme: "light",
               accentColor: "#676FFF",
-              logo: "https://prophesy.fun/logo-primary.svg",
+              logo: "https://prophesy.fun/sparks.svg",
             },
             embeddedWallets: {
               createOnLogin: "users-without-wallets",
