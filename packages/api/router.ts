@@ -1,20 +1,33 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
-import type { User, Tweet } from "./types";
+import type { User, Tweet, PaginatedResponse } from "./types";
 
 // Input schemas
-export const textInputSchema = z.object({
-  text: z.string().min(1),
-});
-
 export const createUserSchema = z.object({
-  username: z.string(),
-  email: z.string().email(),
-  password: z.string(),
+  id: z.string(), // Privy DID
+  authType: z.string(),
+  twitter: z.object({
+    subject: z.string(),
+    username: z.string(),
+    name: z.string(),
+    profilePictureUrl: z.string(),
+    firstVerifiedAt: z.string().transform((str) => new Date(str)),
+    latestVerifiedAt: z.string().transform((str) => new Date(str)),
+  }),
+  wallet: z.object({
+    address: z.string(),
+    walletClient: z.string(),
+  }),
 });
 
 export const createTweetSchema = z.object({
-  content: z.string().min(1),
+  content: z.string().min(1).max(280),
+  userId: z.string(), // Privy DID of the user
+});
+
+export const paginationSchema = z.object({
+  limit: z.number().min(1).max(100).default(20),
+  cursor: z.string().optional(),
 });
 
 // Initialize tRPC
@@ -31,8 +44,11 @@ export const router = t.router({
   createTweet: t.procedure.input(createTweetSchema).mutation(() => {
     return {} as Tweet;
   }),
-  getTweets: t.procedure.query(() => {
-    return [] as Tweet[];
+  getTweets: t.procedure.input(paginationSchema).query(() => {
+    return {
+      items: [] as Tweet[],
+      nextCursor: undefined,
+    } as PaginatedResponse<Tweet>;
   }),
 });
 

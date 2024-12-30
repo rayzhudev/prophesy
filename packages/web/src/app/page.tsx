@@ -4,61 +4,77 @@ import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { trpc } from "../utils/trpc";
 import Image from "next/image";
+import type { Tweet } from "@prophesy/api/types";
+import { convertPrivyUserToCreateUserInput } from "../types/privy";
 
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { login, authenticated, user, ready } = usePrivy();
 
+  // Create user in our database when they first log in
+  const createUser = trpc.createUser.useMutation({
+    onError: (error) => {
+      console.error("Error creating user:", error);
+      // Don't show this error to the user as it might be a duplicate user error
+    },
+  });
+
   useEffect(() => {
     if (ready && user) {
       console.log("=== Privy User Information ===");
       console.log("User ID:", user.id);
       console.log("Email:", user.email);
-      console.log("Google:", user.google);
-      console.log("Twitter:", user.twitter);
-      console.log("Discord:", user.discord);
-      console.log("GitHub:", user.github);
-      console.log("Wallet Addresses:", user.wallet?.address);
       console.log("Linked Accounts:", user.linkedAccounts);
-      const smartWallet = user.linkedAccounts.find((account) => account.type === 'smart_wallet');
-      console.log("Smart Wallet Address:", smartWallet?.address);
-      console.log("Smart Wallet Type:", smartWallet?.type);
       console.log("Full User Object:", JSON.stringify(user, null, 2));
-      console.log("=== End User Information ===");
+
+      // Find Twitter account from linkedAccounts
+      const twitterAccount = user.linkedAccounts.find(
+        (account) => account.type === "twitter_oauth"
+      );
+      const walletAccount = user.linkedAccounts.find(
+        (account) => account.type === "wallet"
+      );
+
+      if (twitterAccount && walletAccount) {
+        const createUserInput = convertPrivyUserToCreateUserInput(
+          user.id,
+          twitterAccount,
+          walletAccount
+        );
+
+        if (createUserInput) {
+          createUser.mutate(createUserInput);
+        }
+      }
     }
   }, [ready, user]);
 
-  const { data: tweets, refetch: refetchTweets } = trpc.getTweets.useQuery(
-    undefined,
+  // Fetch tweets with pagination
+  const {
+    data: tweetData,
+    fetchNextPage,
+    hasNextPage,
+  } = trpc.getTweets.useInfiniteQuery(
     {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      staleTime: 0,
+      limit: 20,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
 
+  const utils = trpc.useContext();
+
   const createTweet = trpc.createTweet.useMutation({
     onSuccess: () => {
-      refetchTweets();
       setContent("");
+      // Invalidate and refetch tweets
+      utils.getTweets.invalidate();
     },
     onError: (error) => {
       console.error("Tweet creation error:", error);
-      const errorDetails = {
-        message: error.message,
-        shape: error.shape,
-        data: error.data,
-      };
-      console.error(
-        "Error creating tweet (structured):",
-        JSON.stringify(errorDetails, null, 2)
-      );
-      setError(
-        `Error creating tweet: ${
-          error.message
-        }\n\nFull error details:\n${JSON.stringify(errorDetails, null, 2)}`
-      );
+      setError(`Error creating tweet: ${error.message}`);
     },
   });
 
@@ -71,14 +87,16 @@ export default function Home() {
       return;
     }
 
-    try {
-      console.log("=== Tweet Form Debug ===");
-      console.log("Content:", content);
-      console.log("=== End Form Debug ===");
+    if (!user?.id) {
+      setError("Please log in to create a tweet");
+      return;
+    }
 
-      // Call the mutation
-      const result = await createTweet.mutateAsync({ content: content.trim() });
-      console.log("Tweet created:", result);
+    try {
+      await createTweet.mutateAsync({
+        content: content.trim(),
+        userId: user.id,
+      });
     } catch (error) {
       console.error("Tweet submission error:", error);
       if (error instanceof Error) {
@@ -88,6 +106,9 @@ export default function Home() {
       }
     }
   };
+
+  // Flatten tweets from all pages
+  const allTweets = tweetData?.pages.flatMap((page) => page.items) ?? [];
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 relative">
@@ -113,48 +134,73 @@ export default function Home() {
           )}
         </header>
 
-        {/* Tweet Composer */}
-        <div className="border-b border-amber-500/20 p-4 text-gray-900">
-          <form onSubmit={handleCreateTweet} className="space-y-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gray-200 ring-2 ring-amber-500/20"></div>
-              <div className="flex-1">
-                <textarea
-                  placeholder="~~✨ Manifest your vision ✨~~"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="w-full bg-transparent text-xl placeholder-amber-500/40 italic placeholder:italic outline-none resize-none focus:ring-0"
-                  rows={3}
-                />
+        {/* Tweet Composer - Only show when authenticated */}
+        {authenticated && (
+          <div className="border-b border-amber-500/20 p-4 text-gray-900">
+            <form onSubmit={handleCreateTweet} className="space-y-4">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
+                  {user?.twitter?.profilePictureUrl && (
+                    <Image
+                      src={user.twitter.profilePictureUrl}
+                      alt="Profile"
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <textarea
+                    placeholder="~~✨ Manifest your vision ✨~~"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="w-full bg-transparent text-xl placeholder-amber-500/40 italic placeholder:italic outline-none resize-none focus:ring-0"
+                    rows={3}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="bg-gray-600 text-white px-6 py-2 rounded-full font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20"
-              >
-                Manifest
-              </button>
-            </div>
-          </form>
-        </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-gray-900 text-amber-300 px-6 py-2 rounded-full italic font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20 border-2 border-amber-300"
+                >
+                  Manifest
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Tweet Feed */}
         <div className="divide-y divide-amber-500/20">
-          {tweets?.map((tweet) => (
+          {allTweets.map((tweet: Tweet) => (
             <article
               key={tweet.id}
               className="p-4 hover:bg-amber-50 transition cursor-pointer"
             >
               <div className="flex space-x-4">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0 ring-2 ring-amber-500/20"></div>
+                <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
+                  {tweet.user?.twitter?.profilePictureUrl && (
+                    <Image
+                      src={tweet.user.twitter.profilePictureUrl}
+                      alt="Profile"
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
                 <div>
                   <div className="flex items-center space-x-2">
                     <span className="font-bold text-gray-900">
-                      Anonymous Prophet
+                      {tweet.user?.twitter?.name || "Anonymous Prophet"}
+                    </span>
+                    <span className="text-gray-500">
+                      @{tweet.user?.twitter?.username}
                     </span>
                   </div>
-                  <p className="mt-2 text-[15px] leading-normal text-gray-600">
+                  <p className="mt-2 text-[15px] leading-normal text-gray-600 italic">
                     {tweet.content}
                   </p>
                   <div className="mt-3 flex items-center space-x-12">
@@ -203,6 +249,18 @@ export default function Home() {
               </div>
             </article>
           ))}
+
+          {/* Load More Button */}
+          {hasNextPage && (
+            <div className="p-4 text-center">
+              <button
+                onClick={() => fetchNextPage()}
+                className="text-amber-500 hover:text-amber-600 font-medium"
+              >
+                Load More
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
