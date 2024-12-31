@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import * as trpcExpress from "@trpc/server/adapters/express";
@@ -5,6 +6,7 @@ import { router } from "./trpc.js";
 import { PORT, isOriginAllowed } from "./constants.js";
 import { createContext } from "./trpc.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // Initialize Express app
 const app = express();
@@ -29,6 +31,9 @@ const corsOptions: cors.CorsOptions = {
 
 // Use CORS middleware first
 app.use(cors(corsOptions));
+
+// Use cookie-parser middleware
+app.use(cookieParser() as unknown as express.RequestHandler);
 
 // Error handling for CORS
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
