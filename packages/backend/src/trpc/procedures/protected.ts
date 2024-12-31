@@ -28,7 +28,27 @@ export const protectedProcedures = {
         });
 
         if (existingUser) {
-          return existingUser;
+          // Update Twitter account details
+          await ctx.prisma.twitterAccount.update({
+            where: { userId: existingUser.id },
+            data: {
+              username: input.twitter.username,
+              name: input.twitter.name,
+              profilePictureUrl: input.twitter.profilePictureUrl,
+              latestVerifiedAt: new Date(input.twitter.latestVerifiedAt),
+            },
+          });
+
+          return {
+            ...existingUser,
+            twitter: {
+              ...existingUser.twitter,
+              username: input.twitter.username,
+              name: input.twitter.name,
+              profilePictureUrl: input.twitter.profilePictureUrl,
+              latestVerifiedAt: new Date(input.twitter.latestVerifiedAt),
+            },
+          };
         }
 
         // Create all in a transaction to ensure consistency
