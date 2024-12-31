@@ -7,9 +7,6 @@ RUN apt-get update && apt-get install -y curl unzip && \
 
 ENV PATH="/root/.bun/bin:${PATH}"
 
-# Install Prisma CLI globally
-RUN bun install -g prisma
-
 WORKDIR /app
 
 # Install OpenSSL 3.0
