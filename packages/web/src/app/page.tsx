@@ -12,7 +12,7 @@ import Navigation from "../components/Navigation";
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { login, authenticated, user, ready, logout } = usePrivy();
+  const { login, authenticated, user, ready } = usePrivy();
 
   // Add textarea auto-expand functionality
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -317,22 +317,12 @@ export default function Home() {
 
         {/* Privy Login Button - Fixed Bottom Right */}
         <div className="fixed bottom-6 right-6">
-          {!authenticated ? (
+          {!authenticated && (
             <button
               onClick={login}
               className="bg-gray-600 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20 flex items-center space-x-2"
             >
               <span>Log In</span>
-            </button>
-          ) : (
-            <button
-              onClick={logout}
-              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 px-4 py-2 rounded-full font-medium border border-amber-500/20 transition-all flex items-center gap-2 group"
-            >
-              <span>Connected as {user?.twitter?.username || "Anonymous"}</span>
-              <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
-                (click to logout)
-              </span>
             </button>
           )}
         </div>

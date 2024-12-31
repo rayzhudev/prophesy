@@ -1,13 +1,17 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { usePrivy } from "@privy-io/react-auth";
+import { useState } from "react";
 
 const Navigation = () => {
   const pathname = usePathname();
+  const { login, authenticated, user, logout } = usePrivy();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const tabs = [
     {
-      name: "",
+      name: "Home",
       path: "/",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -16,7 +20,7 @@ const Navigation = () => {
       ),
     },
     {
-      name: "",
+      name: "Collection",
       path: "/collection",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -25,7 +29,7 @@ const Navigation = () => {
       ),
     },
     {
-      name: "",
+      name: "Wallet",
       path: "/wallet",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -83,6 +87,68 @@ const Navigation = () => {
             </Link>
           ))}
         </div>
+
+        {/* Profile Section - Desktop */}
+        <div className="mt-auto p-3 relative">
+          {authenticated && user?.twitter ? (
+            <>
+              <div
+                className="flex items-center gap-3 p-2 rounded-full hover:bg-gray-50 cursor-pointer"
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
+                  {user.twitter.profilePictureUrl && (
+                    <Image
+                      src={user.twitter.profilePictureUrl}
+                      alt="Profile"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">
+                    {user.twitter.name}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    @{user.twitter.username}
+                  </div>
+                </div>
+                <div className="text-gray-400">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                    <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Dropdown Menu */}
+              {menuOpen && (
+                <div className="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                    </svg>
+                    Log out
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <button
+              onClick={login}
+              className="w-full bg-gray-900 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-800 transition shadow-lg shadow-gray-600/20 flex items-center justify-center"
+            >
+              Log In
+            </button>
+          )}
+        </div>
       </nav>
 
       {/* Mobile Navigation */}
@@ -113,6 +179,32 @@ const Navigation = () => {
             </div>
           </nav>
         </div>
+      </div>
+
+      {/* Mobile Login Button */}
+      <div className="lg:hidden fixed bottom-24 right-6">
+        {!authenticated ? (
+          <button
+            onClick={login}
+            className="bg-gray-900 text-white px-6 py-3 rounded-full font-bold hover:bg-gray-800 transition shadow-lg shadow-gray-600/20 flex items-center space-x-2"
+          >
+            <span>Log In</span>
+          </button>
+        ) : (
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-full shadow-lg p-2 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
+              {user?.twitter?.profilePictureUrl && (
+                <Image
+                  src={user.twitter.profilePictureUrl}
+                  alt="Profile"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
