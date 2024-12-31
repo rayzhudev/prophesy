@@ -1,13 +1,16 @@
 {
   "name": "@prophesy/backend",
-  "module": "index.ts",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun run db:generate && bun build ./src/index.ts --outdir ./dist --target node --external @prisma/client --external prisma",
     "start": "bun run dist/index.js",
-    "docker:build": "docker build --progress=plain -t prophesy-backend -f Dockerfile ../..",
-    "docker:run": "docker run -p 3000:3000 prophesy-backend",
+    "docker:build": "docker build --progress=plain -t prophesy-backend:latest -f Dockerfile ../..",
+    "docker:run": "docker run --rm --name prophesy-backend --network backend_default -p 3000:3000 --env-file .env -e NODE_OPTIONS='--no-warnings' -e DATABASE_URL=postgresql://postgres:postgres@db:5432/prophesy prophesy-backend:latest",
+    "docker:stop": "docker stop prophesy-backend || true",
+    "docker:restart": "bun run docker:stop && bun run docker:build && bun run docker:run",
     "db:up": "docker-compose up -d",
     "db:down": "docker-compose down",
     "db:push": "dotenv -e .env.local prisma db push",
@@ -23,25 +26,25 @@
     "test:cors": "bun run src/test-cors.ts"
   },
   "dependencies": {
+    "@privy-io/server-auth": "^1.5.1",
+    "@prisma/client": "^5.10.2",
     "@prophesy/api": "workspace:*",
     "@trpc/server": "^10.45.2",
-    "zod": "^3.24.1",
-    "@prisma/client": "^5.10.2",
-    "express": "^4.18.3",
-    "@types/express": "^4.17.21",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "@types/cors": "^2.8.17",
-    "node-fetch": "^3.3.2"
+    "dotenv": "^16.4.1",
+    "express": "^4.18.3",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "eslint": "^8.56.0",
+    "eslint-config-custom": "workspace:*",
     "prisma": "^5.10.2",
-    "dotenv-cli": "^7.4.1",
-    "nodemon": "^3.1.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
   }
 }

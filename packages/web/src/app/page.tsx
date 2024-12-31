@@ -10,7 +10,7 @@ import { convertPrivyUserToCreateUserInput } from "../types/privy";
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { login, authenticated, user, ready } = usePrivy();
+  const { login, authenticated, user, ready, logout } = usePrivy();
 
   // Create user in our database when they first log in
   const createUser = trpc.createUser.useMutation({
@@ -21,7 +21,11 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (ready && user) {
+    const initUser = async () => {
+      if (!ready) return; // Wait for Privy to be ready
+      if (!authenticated) return; // Make sure user is authenticated
+      if (!user) return; // Make sure we have user data
+
       console.log("=== Privy User Information ===");
       console.log("User ID:", user.id);
       console.log("Email:", user.email);
@@ -44,11 +48,18 @@ export default function Home() {
         );
 
         if (createUserInput) {
-          createUser.mutate(createUserInput);
+          try {
+            await createUser.mutateAsync(createUserInput);
+          } catch (error) {
+            console.error("Failed to create user:", error);
+            // Ignore specific errors like duplicate user
+          }
         }
       }
-    }
-  }, [ready, user]);
+    };
+
+    initUser();
+  }, [ready, authenticated, user]);
 
   // Fetch tweets with pagination
   const {
@@ -88,7 +99,7 @@ export default function Home() {
     }
 
     if (!user?.id) {
-      setError("Please log in to create a tweet");
+      setError("Please log in to manifest");
       return;
     }
 
@@ -112,6 +123,18 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 relative">
+      {/* Environment Indicator */}
+      <div className="fixed top-4 left-4 z-20">
+        {process.env.NODE_ENV === "production" ? (
+          <div className="px-2 py-1 bg-yellow-500/10 text-yellow-600 text-xs font-bold rounded border border-yellow-500/20">
+            ALPHA
+          </div>
+        ) : (
+          <div className="px-2 py-1 bg-yellow-500/10 text-yellow-600 text-xs font-bold rounded border border-yellow-500/20">
+            DEVELOPMENT
+          </div>
+        )}
+      </div>
       {/* Main Content */}
       <div className="max-w-2xl mx-auto border-x border-amber-500/20 min-h-screen bg-white">
         {/* Sticky Header */}
@@ -135,7 +158,7 @@ export default function Home() {
         </header>
 
         {/* Tweet Composer - Only show when authenticated */}
-        {authenticated && (
+        {
           <div className="border-b border-amber-500/20 p-4 text-gray-900">
             <form onSubmit={handleCreateTweet} className="space-y-4">
               <div className="flex items-start space-x-4">
@@ -163,14 +186,19 @@ export default function Home() {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="bg-gray-900 text-amber-300 px-6 py-2 rounded-full italic font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20 border-2 border-amber-300"
+                  disabled={!authenticated}
+                  className={`px-6 py-2 rounded-full italic font-bold transition shadow-lg shadow-gray-600/20 border-2 ${
+                    authenticated
+                      ? "bg-gray-900 text-amber-300 hover:bg-gray-600 border-amber-300"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                  }`}
                 >
                   Manifest
                 </button>
               </div>
             </form>
           </div>
-        )}
+        }
 
         {/* Tweet Feed */}
         <div className="divide-y divide-amber-500/20">
@@ -181,6 +209,12 @@ export default function Home() {
             >
               <div className="flex space-x-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
+                  {console.log("Tweet data:", tweet)}
+                  {console.log("Tweet user data:", tweet.user)}
+                  {console.log(
+                    "Profile picture URL:",
+                    tweet.user?.twitter?.profilePictureUrl
+                  )}
                   {tweet.user?.twitter?.profilePictureUrl && (
                     <Image
                       src={tweet.user.twitter.profilePictureUrl}
@@ -188,6 +222,12 @@ export default function Home() {
                       width={48}
                       height={48}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error("Image failed to load:", e);
+                      }}
+                      onLoad={() => {
+                        console.log("Image loaded successfully");
+                      }}
                     />
                   )}
                 </div>
@@ -196,9 +236,14 @@ export default function Home() {
                     <span className="font-bold text-gray-900">
                       {tweet.user?.twitter?.name || "Anonymous Prophet"}
                     </span>
-                    <span className="text-gray-500">
+                    <a
+                      href={`https://twitter.com/${tweet.user?.twitter?.username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-500 hover:text-amber-500 transition-colors"
+                    >
                       @{tweet.user?.twitter?.username}
-                    </span>
+                    </a>
                   </div>
                   <p className="mt-2 text-[15px] leading-normal text-gray-600 italic">
                     {tweet.content}
@@ -274,9 +319,15 @@ export default function Home() {
             <span>Log In</span>
           </button>
         ) : (
-          <div className="bg-amber-500/10 text-amber-500 px-4 py-2 rounded-full font-medium border border-amber-500/20">
-            Connected as {user?.twitter?.username || "Anonymous"}
-          </div>
+          <button
+            onClick={logout}
+            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 px-4 py-2 rounded-full font-medium border border-amber-500/20 transition-all flex items-center gap-2 group"
+          >
+            <span>Connected as {user?.twitter?.username || "Anonymous"}</span>
+            <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity">
+              (click to logout)
+            </span>
+          </button>
         )}
       </div>
     </main>
