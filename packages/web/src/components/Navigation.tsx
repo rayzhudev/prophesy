@@ -7,7 +7,7 @@ const Navigation = () => {
 
   const tabs = [
     {
-      name: "Home",
+      name: "",
       path: "/",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -16,7 +16,7 @@ const Navigation = () => {
       ),
     },
     {
-      name: "Collection",
+      name: "",
       path: "/collection",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
@@ -25,7 +25,7 @@ const Navigation = () => {
       ),
     },
     {
-      name: "Wallet",
+      name: "",
       path: "/wallet",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
