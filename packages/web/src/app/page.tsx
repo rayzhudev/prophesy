@@ -99,7 +99,7 @@ export default function Home() {
     }
 
     if (!user?.id) {
-      setError("Please log in to create a tweet");
+      setError("Please log in to manifest");
       return;
     }
 
@@ -158,7 +158,7 @@ export default function Home() {
         </header>
 
         {/* Tweet Composer - Only show when authenticated */}
-        {(
+        {
           <div className="border-b border-amber-500/20 p-4 text-gray-900">
             <form onSubmit={handleCreateTweet} className="space-y-4">
               <div className="flex items-start space-x-4">
@@ -186,14 +186,19 @@ export default function Home() {
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  className="bg-gray-900 text-amber-300 px-6 py-2 rounded-full italic font-bold hover:bg-gray-600 transition shadow-lg shadow-gray-600/20 border-2 border-amber-300"
+                  disabled={!authenticated}
+                  className={`px-6 py-2 rounded-full italic font-bold transition shadow-lg shadow-gray-600/20 border-2 ${
+                    authenticated
+                      ? "bg-gray-900 text-amber-300 hover:bg-gray-600 border-amber-300"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400"
+                  }`}
                 >
                   Manifest
                 </button>
               </div>
             </form>
           </div>
-        )}
+        }
 
         {/* Tweet Feed */}
         <div className="divide-y divide-amber-500/20">
@@ -204,21 +209,24 @@ export default function Home() {
             >
               <div className="flex space-x-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
-                  {console.log('Tweet data:', tweet)}
-                  {console.log('Tweet user data:', tweet.user)}
-                  {console.log('Profile picture URL:', tweet.user?.twitter?.profilePictureUrl)}
+                  {console.log("Tweet data:", tweet)}
+                  {console.log("Tweet user data:", tweet.user)}
+                  {console.log(
+                    "Profile picture URL:",
+                    tweet.user?.twitter?.profilePictureUrl
+                  )}
                   {tweet.user?.twitter?.profilePictureUrl && (
                     <Image
                       src={tweet.user.twitter.profilePictureUrl}
-                      alt="Profile" 
+                      alt="Profile"
                       width={48}
                       height={48}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        console.error('Image failed to load:', e);
+                        console.error("Image failed to load:", e);
                       }}
                       onLoad={() => {
-                        console.log('Image loaded successfully');
+                        console.log("Image loaded successfully");
                       }}
                     />
                   )}
