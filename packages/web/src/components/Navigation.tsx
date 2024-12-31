@@ -29,7 +29,8 @@ const Navigation = () => {
       path: "/wallet",
       icon: (
         <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
-          <path d="M19.5 7h-15A2.5 2.5 0 002 9.5v8A2.5 2.5 0 004.5 20h15a2.5 2.5 0 002.5-2.5v-8A2.5 2.5 0 0019.5 7zm-15-2h15A4.5 4.5 0 0124 9.5v8a4.5 4.5 0 01-4.5 4.5h-15A4.5 4.5 0 010 17.5v-8A4.5 4.5 0 014.5 5z" />
+          <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12z" />
+          <path d="M4 7h16v2H4zm0 3h16v2H4zm0" opacity={0.9} />
         </svg>
       ),
     },
