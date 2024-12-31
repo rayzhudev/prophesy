@@ -1,3 +1,6 @@
+// Constants
+export const TWEET_MAX_LENGTH = 280;
+
 // Domain Models
 export interface User {
   id: string;
