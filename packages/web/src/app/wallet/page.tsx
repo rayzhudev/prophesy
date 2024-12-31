@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useFundWallet } from "@privy-io/react-auth";
 import Navigation from "../../components/Navigation";
 import { formatEther, createPublicClient, http } from "viem";
 import { base, baseSepolia } from "viem/chains";
@@ -11,6 +11,7 @@ const chain = process.env.NODE_ENV === "production" ? base : baseSepolia;
 
 export default function Wallet() {
   const { user, ready } = usePrivy();
+  const { fundWallet } = useFundWallet();
   const [balance, setBalance] = useState<string | null>(null);
 
   // Get the smart wallet address
@@ -37,6 +38,19 @@ export default function Wallet() {
 
     fetchBalance();
   }, [walletAddress]);
+
+  const handleFundWallet = async () => {
+    if (!walletAddress) return;
+
+    try {
+      await fundWallet(walletAddress, {
+        chain: chain,
+        // defaultFundingMethod: 'wallet',
+      });
+    } catch (error) {
+      console.error("Error funding wallet:", error);
+    }
+  };
 
   if (!ready) {
     return (
@@ -92,6 +106,15 @@ export default function Wallet() {
                 {balance ? `${balance} ETH` : "Loading..."}
               </div>
               <div className="text-sm text-gray-500 mt-1">on {chain.name}</div>
+            </div>
+
+            <div className="pt-4">
+              <button
+                onClick={handleFundWallet}
+                className="w-full bg-amber-500 text-white px-6 py-3 rounded-full font-bold hover:bg-amber-600 transition shadow-lg shadow-amber-600/20 flex items-center justify-center"
+              >
+                Add Funds
+              </button>
             </div>
           </div>
         </div>
