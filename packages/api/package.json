@@ -12,8 +12,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch"
+    "build": "bun build ./router.ts --outdir ./dist",
+    "dev": "bun --watch ./router.ts --outdir ./dist"
   },
   "dependencies": {
     "@trpc/server": "^10.45.2",

@@ -14,24 +14,15 @@ const privyClient = new PrivyClient(
 
 // Middleware to verify authentication
 const isAuthed = t.middleware(async ({ ctx, next }) => {
-  const authHeader = ctx.req.headers.authorization;
-
-  if (!authHeader) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "No authorization header",
-    });
-  }
-
-  const token = authHeader.split(" ")[1];
-  if (!token) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "No token provided",
-    });
-  }
-
   try {
+    const token = ctx.req.cookies["privy-token"];
+    if (!token) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No authentication token provided",
+      });
+    }
+
     const verifiedToken = await privyClient.verifyAuthToken(token);
 
     return next({
@@ -44,7 +35,7 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     });
   } catch (error) {
     throw new TRPCError({
-      code: "UNAUTHORIZED",
+      code: "UNAUTHORIZED", 
       message: "Invalid token",
       cause: error,
     });
