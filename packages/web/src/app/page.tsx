@@ -209,12 +209,6 @@ export default function Home() {
             >
               <div className="flex space-x-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200 ring-2 ring-amber-500/20">
-                  {console.log("Tweet data:", tweet)}
-                  {console.log("Tweet user data:", tweet.user)}
-                  {console.log(
-                    "Profile picture URL:",
-                    tweet.user?.twitter?.profilePictureUrl
-                  )}
                   {tweet.user?.twitter?.profilePictureUrl && (
                     <Image
                       src={tweet.user.twitter.profilePictureUrl}

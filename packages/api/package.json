@@ -2,15 +2,8 @@
   "name": "@prophesy/api",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "main": "./dist/router.js",
   "types": "./router.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/router.js",
-      "types": "./router.ts"
-    }
-  },
   "scripts": {
     "build": "bun build ./router.ts --outdir ./dist",
     "dev": "bun --watch ./router.ts --outdir ./dist"

@@ -1,6 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
-import type { User, Tweet, PaginatedResponse } from "./types.js";
+import type { User, Tweet, PaginatedResponse } from "./types";
 
 // Input schemas
 export const createUserSchema = z.object({
