@@ -5,7 +5,7 @@ import { useState } from "react";
 import { trpc, getClient } from "@/utils/trpc";
 import { PrivyProvider } from "@privy-io/react-auth";
 import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
-
+import { base, baseSepolia } from "viem/chains";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -26,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             embeddedWallets: {
               createOnLogin: "users-without-wallets",
             },
+            supportedChains: [base, baseSepolia],
           }}
         >
           <SmartWalletsProvider>

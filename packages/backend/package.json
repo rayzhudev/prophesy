@@ -19,7 +19,7 @@
     "db:wipe": "docker-compose down -v && docker-compose up -d && bun run db:push",
     "db:generate": "prisma generate",
     "db:migrate:dev": "prisma migrate dev",
-    "db:migrate:dev:dryrun": "prisma migrate status",
+    "db:migrate:dev:status": "prisma migrate status",
     "db:migrate:create": "prisma migrate dev --create-only",
     "db:migrate:prod": "dotenv -e .env.production prisma migrate status",
     "db:migrate:prod:real": "dotenv -e .env.production prisma migrate deploy",

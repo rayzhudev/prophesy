@@ -1,10 +1,13 @@
+// Constants
+export const TWEET_MAX_LENGTH = 280;
+
 // Domain Models
 export interface User {
   id: string;
   authType: string;
   createdAt: string;
   twitter?: TwitterProfile;
-  wallet?: WalletProfile;
+  wallets: WalletProfile[];
   tweets?: Tweet[];
 }
 
@@ -17,6 +20,13 @@ export interface TwitterProfile {
   profilePictureUrl: string;
   firstVerifiedAt: string;
   latestVerifiedAt: string;
+  followersCount?: number;
+  followingCount?: number;
+  tweetCount?: number;
+  listedCount?: number;
+  likeCount?: number;
+  mediaCount?: number;
+  lastMetricsFetch?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +36,7 @@ export interface WalletProfile {
   userId: string;
   address: string;
   walletType: string;
+  walletClientType: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,28 +49,23 @@ export interface Tweet {
   user?: User;
 }
 
-// API Response Types
-export interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor?: string;
-}
-
 // Input Types
 export interface CreateUserInput {
   id: string;
   authType: string;
-  twitter: {
+  twitter?: {
     subject: string;
     username: string;
     name: string;
     profilePictureUrl: string;
-    firstVerifiedAt: string;
-    latestVerifiedAt: string;
+    firstVerifiedAt?: Date;
+    latestVerifiedAt?: Date;
   };
-  wallet: {
+  wallets: {
     address: string;
-    walletClient: string;
-  };
+    walletType: string;
+    walletClientType: string;
+  }[];
 }
 
 export interface CreateTweetInput {
