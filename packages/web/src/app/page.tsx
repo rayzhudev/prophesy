@@ -8,7 +8,6 @@ import type { Tweet } from "@prophesy/api/types";
 import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
 import { convertPrivyUserToCreateUserInput } from "../adapters/privy";
 import Navigation from "../components/Navigation";
-import { useFollowerCount } from "../context/FollowerContext";
 import type { z } from "zod";
 import type { createUserSchema } from "@prophesy/api/schemas";
 
@@ -17,7 +16,6 @@ type CreateUserSchemaType = z.infer<typeof createUserSchema>;
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { followerCount } = useFollowerCount();
   const { login, authenticated, user, ready } = usePrivy();
 
   // Add textarea auto-expand functionality
@@ -148,11 +146,6 @@ export default function Home() {
                 />
                 Prophesy
               </h2>
-              {authenticated && followerCount !== null && (
-                <div className="text-sm text-gray-500">
-                  {followerCount.toLocaleString()} followers
-                </div>
-              )}
             </div>
             {error && (
               <div className="mt-2 p-2 bg-red-900/50 border border-red-700 rounded text-sm text-red-400">
