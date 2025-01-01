@@ -6,7 +6,7 @@ import { trpc } from "../utils/trpc";
 import Image from "next/image";
 import type { Tweet } from "@prophesy/api/types";
 import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
-import { convertPrivyUserToCreateUserInput } from "../types/privy";
+import { convertPrivyUserToCreateUserInput } from "../adapters/privy";
 import Navigation from "../components/Navigation";
 import { useFollowerCount } from "../context/FollowerContext";
 import type { z } from "zod";

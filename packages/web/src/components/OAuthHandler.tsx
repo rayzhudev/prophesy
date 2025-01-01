@@ -8,10 +8,6 @@ export function OAuthHandler() {
 
   useOAuthTokens({
     onOAuthTokenGrant: async (tokens: OAuthTokens, { user }) => {
-      console.log("🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦");
-      console.log(tokens);
-      console.log(user);
-      console.log("🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦🐦");
       if (tokens.provider !== "twitter") {
         return;
       }
@@ -37,19 +33,23 @@ export function OAuthHandler() {
           accessToken: tokens.accessToken,
         });
 
-        if (result.meta?.result_count !== undefined) {
-          setFollowerCount(result.meta.result_count);
+        if (result.followersCount !== undefined) {
+          setFollowerCount(result.followersCount);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error fetching follower count:", error);
-        if (error.message.includes("rate limit")) {
-          console.log("Rate limited by Twitter API - will retry later");
-          // Could implement retry logic here
-        } else if (error.message.includes("permissions")) {
-          console.log("Permission error - user may need to reconnect Twitter");
-          // Could prompt user to reconnect their Twitter account
+        if (error instanceof Error && error.message) {
+          if (error.message.includes("rate limit")) {
+            console.log("Rate limited by Twitter API - will retry later");
+            // Could implement retry logic here
+          } else if (error.message.includes("permissions")) {
+            console.log(
+              "Permission error - user may need to reconnect Twitter"
+            );
+            // Could prompt user to reconnect their Twitter account
+          }
+          // Keep the old follower count if there's an error
         }
-        // Keep the old follower count if there's an error
       }
     },
   });
