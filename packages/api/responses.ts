@@ -1,10 +1,16 @@
+// Generic Response Types
+export interface PaginatedResponse<T> {
+  items: T[];
+  nextCursor?: string;
+}
+
+// Twitter Response Types
 export interface TwitterFollowersResponse {
-  meta: {
-    result_count: number;
-  };
-  data?: {
-    id: string;
-    name: string;
-    username: string;
-  }[];
+  followersCount: number;
+  followingCount: number;
+  tweetCount: number;
+  listedCount: number;
+  likeCount: number;
+  mediaCount: number;
+  lastFetched: Date;
 }

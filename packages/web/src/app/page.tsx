@@ -9,6 +9,10 @@ import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
 import { convertPrivyUserToCreateUserInput } from "../types/privy";
 import Navigation from "../components/Navigation";
 import { useFollowerCount } from "../context/FollowerContext";
+import type { z } from "zod";
+import type { createUserSchema } from "@prophesy/api/schemas";
+
+type CreateUserSchemaType = z.infer<typeof createUserSchema>;
 
 export default function Home() {
   const [content, setContent] = useState("");
@@ -52,29 +56,14 @@ export default function Home() {
         console.log("Full User Object:", JSON.stringify(user, null, 2));
       }
 
-      // Find Twitter account from linkedAccounts
-      const twitterAccount = user.linkedAccounts.find(
-        (account) => account.type === "twitter_oauth"
-      );
-      const walletAccount = user.linkedAccounts.find(
-        (account) => account.type === "wallet"
-      );
+      // Convert Privy user data to our format
+      const createUserInput = convertPrivyUserToCreateUserInput(user);
 
-      if (twitterAccount && walletAccount) {
-        const createUserInput = convertPrivyUserToCreateUserInput(
-          user.id,
-          twitterAccount,
-          walletAccount
-        );
-
-        if (createUserInput) {
-          try {
-            await createUser.mutateAsync(createUserInput);
-          } catch (error) {
-            console.error("Failed to create user:", error);
-            // Ignore specific errors like duplicate user
-          }
-        }
+      try {
+        await createUser.mutateAsync(createUserInput);
+      } catch (error) {
+        console.error("Failed to create user:", error);
+        // Ignore specific errors like duplicate user
       }
     };
 

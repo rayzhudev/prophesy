@@ -5,9 +5,8 @@ import {
   createUserSchema,
   createTweetSchema,
   getTwitterFollowersSchema,
-} from "@prophesy/api";
+} from "@prophesy/api/";
 import { protectedProcedure } from "../middleware.js";
-import { Client, auth } from "twitter-api-sdk";
 
 export const protectedProcedures = {
   createUser: protectedProcedure
@@ -22,77 +21,100 @@ export const protectedProcedures = {
       }
 
       try {
-        // First check if user exists
-        const existingUser = await ctx.prisma.user.findUnique({
-          where: { id: input.id },
-          include: {
-            twitter: true,
-            wallet: true,
-          },
-        });
-
-        if (existingUser) {
-          // Update Twitter account details
-          await ctx.prisma.twitterAccount.update({
-            where: { userId: existingUser.id },
-            data: {
-              username: input.twitter.username,
-              name: input.twitter.name,
-              profilePictureUrl: input.twitter.profilePictureUrl,
-              latestVerifiedAt: new Date(input.twitter.latestVerifiedAt),
-            },
-          });
-
-          return {
-            ...existingUser,
-            twitter: {
-              ...existingUser.twitter,
-              username: input.twitter.username,
-              name: input.twitter.name,
-              profilePictureUrl: input.twitter.profilePictureUrl,
-              latestVerifiedAt: new Date(input.twitter.latestVerifiedAt),
-            },
-          };
-        }
-
-        // Create all in a transaction to ensure consistency
+        // Create or update user and related data in a transaction
         return await ctx.prisma.$transaction(async (tx) => {
-          // Create user
-          const user = await tx.user.create({
-            data: {
-              id: input.id,
-              authType: input.authType,
+          // Check if user exists
+          const existingUser = await tx.user.findUnique({
+            where: { id: input.id },
+            include: {
+              twitter: true,
+              wallets: true,
             },
           });
 
-          // Create TwitterAccount
-          await tx.twitterAccount.create({
-            data: {
-              userId: user.id,
-              twitterId: input.twitter.subject,
-              username: input.twitter.username,
-              name: input.twitter.name,
-              profilePictureUrl: input.twitter.profilePictureUrl,
-              firstVerifiedAt: new Date(input.twitter.firstVerifiedAt),
-              latestVerifiedAt: new Date(input.twitter.latestVerifiedAt),
-            },
-          });
+          // Create or update user
+          const user = existingUser
+            ? await tx.user.update({
+                where: { id: input.id },
+                data: { authType: input.authType },
+              })
+            : await tx.user.create({
+                data: {
+                  id: input.id,
+                  authType: input.authType,
+                },
+              });
 
-          // Create Wallet
-          await tx.wallet.create({
-            data: {
-              userId: user.id,
-              address: input.wallet.address,
-              walletType: input.wallet.walletClient,
-            },
-          });
+          // Handle Twitter account
+          if (input.twitter) {
+            if (existingUser?.twitter) {
+              await tx.twitterAccount.update({
+                where: { userId: user.id },
+                data: {
+                  username: input.twitter.username,
+                  name: input.twitter.name,
+                  profilePictureUrl: input.twitter.profilePictureUrl,
+                  ...(input.twitter.latestVerifiedAt && {
+                    latestVerifiedAt: input.twitter.latestVerifiedAt,
+                  }),
+                },
+              });
+            } else {
+              await tx.twitterAccount.create({
+                data: {
+                  userId: user.id,
+                  twitterId: input.twitter.subject,
+                  username: input.twitter.username,
+                  name: input.twitter.name,
+                  profilePictureUrl: input.twitter.profilePictureUrl,
+                  ...(input.twitter.firstVerifiedAt && {
+                    firstVerifiedAt: input.twitter.firstVerifiedAt,
+                  }),
+                  ...(input.twitter.latestVerifiedAt && {
+                    latestVerifiedAt: input.twitter.latestVerifiedAt,
+                  }),
+                },
+              });
+            }
+          }
+
+          // Handle wallets
+          if (input.wallets?.length > 0) {
+            for (const wallet of input.wallets) {
+              // Check if wallet exists in database
+              const existingWallet = await tx.wallet.findUnique({
+                where: { address: wallet.address },
+              });
+
+              if (existingWallet) {
+                // Update existing wallet
+                await tx.wallet.update({
+                  where: { id: existingWallet.id },
+                  data: {
+                    walletType: wallet.walletType,
+                    walletClientType: wallet.walletClientType,
+                  },
+                });
+              } else {
+                // Create new wallet
+                await tx.wallet.create({
+                  data: {
+                    userId: user.id,
+                    address: wallet.address,
+                    walletType: wallet.walletType,
+                    walletClientType: wallet.walletClientType,
+                  },
+                });
+              }
+            }
+          }
 
           // Return complete user
           return tx.user.findUniqueOrThrow({
             where: { id: user.id },
             include: {
               twitter: true,
-              wallet: true,
+              wallets: true,
             },
           });
         });
@@ -118,7 +140,7 @@ export const protectedProcedures = {
     return ctx.prisma.user.findMany({
       include: {
         twitter: true,
-        wallet: true,
+        wallets: true,
       },
     });
   }),
@@ -183,64 +205,103 @@ export const protectedProcedures = {
 
   getTwitterFollowers: protectedProcedure
     .input(getTwitterFollowersSchema)
-    .mutation(async ({ input }): Promise<TwitterFollowersResponse> => {
-      const { userId, accessToken } = input;
+    .mutation(async ({ ctx, input }): Promise<TwitterFollowersResponse> => {
+      console.log("Fetching Twitter followers for user:", input.userId);
 
       try {
-        console.log("Fetching user data for ID:", userId);
+        // Get the user's Twitter ID from the database
+        const twitterAccount = await ctx.prisma.twitterAccount.findFirst({
+          where: { userId: input.userId },
+        });
+
+        if (!twitterAccount) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Twitter account not found",
+          });
+        }
+
+        // Fetch user data from Twitter API
         const response = await fetch(
-          `https://api.twitter.com/2/users/${userId}?user.fields=public_metrics`,
+          `https://api.twitter.com/2/users/${twitterAccount.twitterId}?user.fields=public_metrics`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
+              Authorization: `Bearer ${input.accessToken}`,
             },
           }
         );
 
         if (!response.ok) {
-          const errorData = await response.text();
-          console.error("Twitter API Error Response:", {
+          const errorText = await response.text();
+          console.error("Twitter API Error:", {
             status: response.status,
             statusText: response.statusText,
-            error: errorData,
+            error: errorText,
           });
-          throw new Error(`Twitter API error: ${response.status} ${errorData}`);
+
+          if (response.status === 429) {
+            throw new TRPCError({
+              code: "TOO_MANY_REQUESTS",
+              message: "Twitter API rate limit exceeded",
+            });
+          }
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Twitter API error: ${response.statusText}`,
+          });
         }
 
         const data = await response.json();
         console.log("Twitter API Response:", JSON.stringify(data, null, 2));
 
-        if (!data.data) {
-          throw new Error("No data returned from Twitter API");
+        if (!data.data?.public_metrics) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Invalid response from Twitter API",
+          });
         }
+
+        // Update metrics in the database
+        const metrics = data.data.public_metrics;
+        await ctx.prisma.twitterAccount.update({
+          where: { id: twitterAccount.id },
+          data: {
+            followersCount: metrics.followers_count ?? 0,
+            followingCount: metrics.following_count ?? 0,
+            tweetCount: metrics.tweet_count ?? 0,
+            listedCount: metrics.listed_count ?? 0,
+            likeCount: metrics.like_count ?? 0,
+            mediaCount: metrics.media_count ?? 0,
+            lastMetricsFetch: new Date(),
+          },
+        });
+
+        // Fetch updated account to return latest metrics
+        const updatedAccount =
+          await ctx.prisma.twitterAccount.findUniqueOrThrow({
+            where: { id: twitterAccount.id },
+          });
 
         return {
-          meta: {
-            result_count: data.data.public_metrics?.followers_count || 0,
-          },
+          followersCount: updatedAccount.followersCount ?? 0,
+          followingCount: updatedAccount.followingCount ?? 0,
+          tweetCount: updatedAccount.tweetCount ?? 0,
+          listedCount: updatedAccount.listedCount ?? 0,
+          likeCount: updatedAccount.likeCount ?? 0,
+          mediaCount: updatedAccount.mediaCount ?? 0,
+          lastFetched: updatedAccount.lastMetricsFetch,
         };
-      } catch (error: any) {
-        console.error("Error fetching Twitter data:", error);
+      } catch (error) {
+        console.error("Error fetching Twitter followers:", error);
 
-        if (error?.status === 429) {
-          throw new TRPCError({
-            code: "TOO_MANY_REQUESTS",
-            message: "Twitter API rate limit exceeded. Please try again later.",
-            cause: error,
-          });
+        if (error instanceof TRPCError) {
+          throw error;
         }
-        if (error?.status === 403) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message:
-              "Unable to access Twitter data. Please check your permissions.",
-            cause: error,
-          });
-        }
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch Twitter data: ${error.message}`,
+          message: "Failed to fetch Twitter followers",
           cause: error,
         });
       }
