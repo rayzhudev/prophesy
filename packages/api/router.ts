@@ -1,6 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import { z } from "zod";
 import type { User, Tweet, PaginatedResponse } from "./types";
+import type { TwitterFollowersResponse } from "./responses";
 
 // Input schemas
 export const createUserSchema = z.object({
@@ -30,6 +31,11 @@ export const paginationSchema = z.object({
   cursor: z.string().optional(),
 });
 
+export const getTwitterFollowersSchema = z.object({
+  userId: z.string(),
+  accessToken: z.string(),
+});
+
 // Initialize tRPC
 const t = initTRPC.create();
 
@@ -50,6 +56,11 @@ export const router = t.router({
       nextCursor: undefined,
     } as PaginatedResponse<Tweet>;
   }),
+  getTwitterFollowers: t.procedure
+    .input(getTwitterFollowersSchema)
+    .mutation(() => {
+      return {} as TwitterFollowersResponse;
+    }),
 });
 
 // Export type router type signature

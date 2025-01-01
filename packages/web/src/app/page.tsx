@@ -8,10 +8,12 @@ import type { Tweet } from "@prophesy/api/types";
 import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
 import { convertPrivyUserToCreateUserInput } from "../types/privy";
 import Navigation from "../components/Navigation";
+import { useFollowerCount } from "../context/FollowerContext";
 
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { followerCount } = useFollowerCount();
   const { login, authenticated, user, ready } = usePrivy();
 
   // Add textarea auto-expand functionality
@@ -42,11 +44,13 @@ export default function Home() {
       if (!authenticated) return; // Make sure user is authenticated
       if (!user) return; // Make sure we have user data
 
-      console.log("=== Privy User Information ===");
-      console.log("User ID:", user.id);
-      console.log("Email:", user.email);
-      console.log("Linked Accounts:", user.linkedAccounts);
-      console.log("Full User Object:", JSON.stringify(user, null, 2));
+      if (process.env.NODE_ENV === "development") {
+        console.log("=== Privy User Information ===");
+        console.log("User ID:", user.id);
+        console.log("Email:", user.email);
+        console.log("Linked Accounts:", user.linkedAccounts);
+        console.log("Full User Object:", JSON.stringify(user, null, 2));
+      }
 
       // Find Twitter account from linkedAccounts
       const twitterAccount = user.linkedAccounts.find(
@@ -155,6 +159,11 @@ export default function Home() {
                 />
                 Prophesy
               </h2>
+              {authenticated && followerCount !== null && (
+                <div className="text-sm text-gray-500">
+                  {followerCount.toLocaleString()} followers
+                </div>
+              )}
             </div>
             {error && (
               <div className="mt-2 p-2 bg-red-900/50 border border-red-700 rounded text-sm text-red-400">

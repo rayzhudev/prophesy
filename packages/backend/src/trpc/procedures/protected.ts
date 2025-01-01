@@ -1,9 +1,13 @@
-import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { Prisma } from "@prisma/client";
-import { createUserSchema } from "@prophesy/api";
+import type { TwitterFollowersResponse } from "@prophesy/api";
+import {
+  createUserSchema,
+  createTweetSchema,
+  getTwitterFollowersSchema,
+} from "@prophesy/api";
 import { protectedProcedure } from "../middleware.js";
-import { tweetContentSchema } from "../schemas.js";
+import { Client, auth } from "twitter-api-sdk";
 
 export const protectedProcedures = {
   createUser: protectedProcedure
@@ -120,12 +124,7 @@ export const protectedProcedures = {
   }),
 
   createTweet: protectedProcedure
-    .input(
-      z.object({
-        content: tweetContentSchema,
-        userId: z.string(),
-      })
-    )
+    .input(createTweetSchema)
     .mutation(async ({ ctx, input }) => {
       // Verify that the user is creating a tweet for themselves
       if (input.userId !== ctx.auth?.userId) {
@@ -177,6 +176,71 @@ export const protectedProcedures = {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create tweet",
+          cause: error,
+        });
+      }
+    }),
+
+  getTwitterFollowers: protectedProcedure
+    .input(getTwitterFollowersSchema)
+    .mutation(async ({ input }): Promise<TwitterFollowersResponse> => {
+      const { userId, accessToken } = input;
+
+      try {
+        console.log("Fetching user data for ID:", userId);
+        const response = await fetch(
+          `https://api.twitter.com/2/users/${userId}?user.fields=public_metrics`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Twitter API Error Response:", {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData,
+          });
+          throw new Error(`Twitter API error: ${response.status} ${errorData}`);
+        }
+
+        const data = await response.json();
+        console.log("Twitter API Response:", JSON.stringify(data, null, 2));
+
+        if (!data.data) {
+          throw new Error("No data returned from Twitter API");
+        }
+
+        return {
+          meta: {
+            result_count: data.data.public_metrics?.followers_count || 0,
+          },
+        };
+      } catch (error: any) {
+        console.error("Error fetching Twitter data:", error);
+
+        if (error?.status === 429) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Twitter API rate limit exceeded. Please try again later.",
+            cause: error,
+          });
+        }
+        if (error?.status === 403) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "Unable to access Twitter data. Please check your permissions.",
+            cause: error,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to fetch Twitter data: ${error.message}`,
           cause: error,
         });
       }

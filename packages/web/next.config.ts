@@ -57,46 +57,46 @@ const nextConfig: NextConfig = {
             value:
               "camera=(), microphone=(), geolocation=(), interest-cohort=()",
           },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              // Default fallback
-              "default-src 'self' https://fonts.gstatic.com",
+          // {
+          //   key: "Content-Security-Policy",
+          //   value: [
+          //     // Default fallback
+          //     "default-src 'self' https://fonts.gstatic.com",
 
-              // Script sources - kept as locked down as possible
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+          //     // Script sources - kept as locked down as possible
+          //     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
 
-              // Connect sources - carefully restricted to required endpoints
-              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org`,
+          //     // Connect sources - carefully restricted to required endpoints
+          //     `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com`,
 
-              // Frame sources
-              "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
+          //     // Frame sources
+          //     "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
 
-              // Child frame sources
-              "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
+          //     // Child frame sources
+          //     "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
 
-              // Prevent site from being embedded unless explicitly needed
-              "frame-ancestors 'none'",
+          //     // Prevent site from being embedded unless explicitly needed
+          //     "frame-ancestors 'none'",
 
-              // Other necessary defaults
-              "img-src 'self' data: https: https://pbs.twimg.com",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://auth.privy.io",
-              "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com https://auth.privy.io https://*.gstatic.com",
+          //     // Other necessary defaults
+          //     "img-src 'self' data: https: https://pbs.twimg.com",
+          //     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://auth.privy.io",
+          //     "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com https://auth.privy.io https://*.gstatic.com",
 
-              // Base URI restriction
-              "base-uri 'self'",
+          //     // Base URI restriction
+          //     "base-uri 'self'",
 
-              // Form actions restriction
-              "form-action 'self'",
-            ].join("; "),
-          },
+          //     // Form actions restriction
+          //     "form-action 'self'",
+          //   ].join("; "),
+          // },
           {
             // Add Report-Only header for testing as recommended by Privy
             key: "Content-Security-Policy-Report-Only",
             value: [
               "default-src 'self' https://fonts.gstatic.com",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
-              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org`,
+              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com`,
               "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
               "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
               "frame-ancestors 'none'",
