@@ -8,10 +8,6 @@ import type { Tweet } from "@prophesy/api/types";
 import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
 import { convertPrivyUserToCreateUserInput } from "../adapters/privy";
 import Navigation from "../components/Navigation";
-import type { z } from "zod";
-import type { createUserSchema } from "@prophesy/api/schemas";
-
-type CreateUserSchemaType = z.infer<typeof createUserSchema>;
 
 export default function Home() {
   const [content, setContent] = useState("");
