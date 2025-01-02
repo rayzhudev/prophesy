@@ -13,9 +13,9 @@ export default function Wallet() {
   const [walletAddress, setWalletAddress] = useState<`0x${string}`>();
 
   useEffect(() => {
-    if (!user?.wallet?.address) return;
-    setWalletAddress(user.wallet.address as `0x${string}`);
-  }, [user?.wallet?.address]);
+    if (!user?.smartWallet?.address) return;
+    setWalletAddress(user.smartWallet.address as `0x${string}`);
+  }, [user?.smartWallet?.address]);
 
   useEffect(() => {
     if (!walletAddress) return;
