@@ -3,11 +3,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePrivy } from "@privy-io/react-auth";
 import { useState } from "react";
+import { ADMIN_HANDLES } from "@/config/admin";
 
 const Navigation = () => {
   const pathname = usePathname();
   const { authenticated, user, logout } = usePrivy();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Check if user is admin
+  const isAdmin =
+    authenticated && user?.twitter?.username
+      ? ADMIN_HANDLES.includes(user.twitter.username)
+      : false;
 
   const tabs = [
     {
@@ -38,6 +45,21 @@ const Navigation = () => {
         </svg>
       ),
     },
+    // Only show admin tab for admin users
+    ...(isAdmin
+      ? [
+          {
+            name: "Admin",
+            path: "/admin",
+            icon: (
+              <svg viewBox="0 0 24 24" className="w-7 h-7 fill-current">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v5.7c0 4.83-3.4 9.16-7 10.35-3.6-1.2-7-5.52-7-10.35V6.3l7-3.12z" />
+                <path d="M11 7h2v2h-2zm0 4h2v6h-2z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -83,7 +105,7 @@ const Navigation = () => {
         </div>
 
         {/* Profile Section - Desktop */}
-        {authenticated && user?.twitter && (
+        {authenticated && user?.twitter?.profilePictureUrl && (
           <div className="mt-auto p-3 relative">
             <div
               className="flex items-center gap-3 p-2 rounded-full hover:bg-gray-50 cursor-pointer"

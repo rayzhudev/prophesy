@@ -4,66 +4,41 @@ import { useEffect, useState } from "react";
 import { usePrivy, useFundWallet } from "@privy-io/react-auth";
 import Navigation from "../../components/Navigation";
 import { formatEther, createPublicClient, http } from "viem";
-import { base, baseSepolia } from "viem/chains";
-
-// Use Base for production, Base Sepolia for development
-const chain = process.env.NODE_ENV === "production" ? base : baseSepolia;
+import { activeChain, chainName } from "@/config/chains";
 
 export default function Wallet() {
-  const { user, ready } = usePrivy();
+  const { ready, authenticated, user } = usePrivy();
   const { fundWallet } = useFundWallet();
-  const [balance, setBalance] = useState<string | null>(null);
-
-  // Get the smart wallet address
-  const walletAddress = user?.smartWallet?.address;
+  const [balance, setBalance] = useState<string>();
+  const [walletAddress, setWalletAddress] = useState<`0x${string}`>();
 
   useEffect(() => {
-    async function fetchBalance() {
-      if (!walletAddress) return;
+    if (!user?.wallet?.address) return;
+    setWalletAddress(user.wallet.address as `0x${string}`);
+  }, [user?.wallet?.address]);
 
-      try {
-        const client = createPublicClient({
-          chain,
-          transport: http(),
-        });
+  useEffect(() => {
+    if (!walletAddress) return;
 
-        const balance = await client.getBalance({
-          address: walletAddress as `0x${string}`,
-        });
-        setBalance(formatEther(balance));
-      } catch (error) {
-        console.error("Error fetching balance:", error);
-      }
-    }
+    const client = createPublicClient({
+      chain: activeChain,
+      transport: http(),
+    });
 
-    fetchBalance();
+    const getBalance = async () => {
+      const balance = await client.getBalance({ address: walletAddress });
+      setBalance(formatEther(balance));
+    };
+
+    getBalance();
+    const interval = setInterval(getBalance, 10000);
+    return () => clearInterval(interval);
   }, [walletAddress]);
 
   const handleFundWallet = async () => {
     if (!walletAddress) return;
-
-    try {
-      await fundWallet(walletAddress, {
-        chain: chain,
-        // defaultFundingMethod: 'wallet',
-      });
-    } catch (error) {
-      console.error("Error funding wallet:", error);
-    }
+    await fundWallet(walletAddress, { chain: activeChain });
   };
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen">
-        <Navigation />
-        <main className="flex-1 p-8">
-          <div className="max-w-xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Loading...</h1>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   if (!walletAddress) {
     return (
@@ -105,7 +80,7 @@ export default function Wallet() {
               <div className="text-2xl font-bold text-gray-900">
                 {balance ? `${balance} ETH` : "Loading..."}
               </div>
-              <div className="text-sm text-gray-500 mt-1">on {chain.name}</div>
+              <div className="text-sm text-gray-500 mt-1">on {chainName}</div>
             </div>
 
             <div className="pt-4">
