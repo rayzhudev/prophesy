@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { trpc, getClient } from "@/utils/trpc";
 import { PrivyProvider } from "@privy-io/react-auth";
-import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
-import { base, baseSepolia } from "viem/chains";
+import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
+import { activeChain } from "@/config/chains";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -26,12 +26,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             embeddedWallets: {
               createOnLogin: "users-without-wallets",
             },
-            supportedChains: [base, baseSepolia],
+            supportedChains: [activeChain],
           }}
         >
-          <SmartWalletsProvider>
-            {children}
-          </SmartWalletsProvider>
+          <SmartWalletsProvider>{children}</SmartWalletsProvider>
         </PrivyProvider>
       </QueryClientProvider>
     </trpc.Provider>
