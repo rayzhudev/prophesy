@@ -8,6 +8,7 @@ import { createContext } from "./trpc.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+console.log("Current NODE_ENV:", process.env.NODE_ENV);
 // Initialize Express app
 const app = express();
 
