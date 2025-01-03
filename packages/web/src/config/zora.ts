@@ -1,33 +1,24 @@
-// import {
-//   createCreatorClient,
-//   createCollectorClient,
-//   type CreatorClient,
-//   type CollectorClient,
-// } from "@zoralabs/protocol-sdk";
-// import { chainId, publicClient } from "./chains";
-// import { useWallet } from "./wallet";
-// import { useMemo } from "react";
+import { createCreatorClient } from "@zoralabs/protocol-sdk";
+import { activeChain, publicClient } from "./chains";
+import { PublicClient } from "viem";
 
-// // Interface for Zora clients
-// export interface ZoraClients {
-//   creatorClient: CreatorClient;
-//   collectorClient: CollectorClient;
-// }
+// Hardcoded contract addresses
+export const prophesy1155ContractAddress =
+  process.env.NODE_ENV === "production"
+    ? "0x44784EbfCF0868a60AB807D92854c55417d3e03a" // Production contract
+    : "0x20eA0C9BD6588a76f72aB149AC03B176B6bD4D47"; // Testnet contract
 
-// // Hook that provides Zora clients based on the current wallet context
-// export function useZoraClients(isAdmin: boolean = false): ZoraClients {
+// Create Zora client factory
+export function createZora() {
+  return createCreatorClient({
+    chainId: activeChain.id,
+    publicClient: publicClient as PublicClient,
+  });
+}
 
-//   return useMemo(
-//     () => ({
-//       creatorClient: createCreatorClient({
-//         chainId,
-//         publicClient,
-//       }),
-//       collectorClient: createCollectorClient({
-//         chainId,
-//         publicClient,
-//       }),
-//     }),
-//     [publicClient]
-//   );
-// }
+const config = {
+  prophesy1155ContractAddress,
+  createZora,
+};
+
+export default config;

@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
 
               // Connect sources - carefully restricted to required endpoints
-              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com`,
+              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com https://api.goldsky.com https://api.developer.coinbase.com`,
 
               // Frame sources
               "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
@@ -96,7 +96,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self' https://fonts.gstatic.com",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
-              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com`,
+              `connect-src 'self' https://${cleanBackendUrl} http://localhost:3000 https://auth.privy.io wss://relay.walletconnect.com wss://relay.walletconnect.org wss://www.walletlink.org https://*.rpc.privy.systems https://*.base.org https://base.org https://api.twitter.com https://api.goldsky.com https://api.developer.coinbase.com`,
               "frame-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org https://challenges.cloudflare.com",
               "child-src 'self' https://auth.privy.io https://verify.walletconnect.com https://verify.walletconnect.org",
               "frame-ancestors 'none'",

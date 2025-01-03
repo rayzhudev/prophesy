@@ -8,11 +8,17 @@ import type { Tweet } from "@prophesy/api/types";
 import { TWEET_MAX_LENGTH } from "@prophesy/api/types";
 import { convertPrivyUserToCreateUserInput } from "../adapters/privy";
 import Navigation from "../components/Navigation";
+import { createZora, prophesy1155ContractAddress } from "../config/zora";
+import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
+import { TokenMetadataJson } from "@zoralabs/protocol-sdk";
+import { encodeFunctionData } from "viem/utils";
 
 export default function Home() {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { login, authenticated, user, ready } = usePrivy();
+  const { client } = useSmartWallets();
+  const zoraClient = createZora();
 
   // Add textarea auto-expand functionality
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -106,11 +112,82 @@ export default function Home() {
       return;
     }
 
+    if (!user?.twitter?.username) {
+      setError("Please connect your Twitter account to manifest");
+      return;
+    }
+
+    if (!user?.smartWallet?.address) {
+      setError("Missing smart wallet for user");
+      return;
+    }
+
+    if (!client) {
+      setError("Missing smart wallet client");
+      return;
+    }
+
     try {
+      // First create the tweet in the database
       await createTweet.mutateAsync({
         content: content.trim(),
         userId: user.id,
       });
+
+      // Create token metadata
+      const tokenMetadata: TokenMetadataJson = {
+        name: content.trim(),
+        description: "A prophecy by " + user.twitter.username,
+        attributes: [],
+      };
+
+      // Convert metadata to data URI - properly handle Unicode characters
+      const tokenMetadataUri = `data:application/json;base64,${Buffer.from(
+        JSON.stringify(tokenMetadata)
+      ).toString("base64")}`;
+
+      try {
+        // Create token on Zora using the existing contract
+        const { parameters, newToken, newTokenId } =
+          await zoraClient.create1155OnExistingContract({
+            contractAddress: prophesy1155ContractAddress as `0x${string}`,
+            token: {
+              tokenMetadataURI: tokenMetadataUri,
+              salesConfig: {
+                // Name of the erc20z token to create for the secondary sale.  If not provided, uses the contract name
+                erc20Name: content.trim(),
+                // Symbol of the erc20z token to create for the secondary sale.  If not provided, extracts it from the name.
+                erc20Symbol: content.trim().slice(0, 4),
+                // Earliest time a token can be minted.  If undefined or 0, then it can be minted immediately.  Defaults to 0n.
+                saleStart: undefined,
+                // Market countdown, in seconds, that will start once the minimum mints for countdown is reached. Defaults to 24 hours.
+                marketCountdown: undefined,
+                // Minimum quantity of mints that will trigger the countdown.  Defaults to 1111n
+                minimumMintsForCountdown: undefined,
+              },
+            },
+            account: user.smartWallet.address as `0x${string}`,
+          });
+
+        console.log("Zora parameters:", parameters);
+        console.log("New token:", newToken);
+        console.log("New token ID:", newTokenId);
+
+        // Execute the transaction using the Privy smart wallet
+        const txHash = await client.sendTransaction({
+          to: parameters.address as `0x${string}`,
+          data: encodeFunctionData({
+            abi: parameters.abi,
+            functionName: parameters.functionName,
+            args: parameters.args,
+          }) as `0x${string}`,
+          value: parameters.value ? BigInt(parameters.value) : BigInt(0),
+        });
+        console.log("Transaction hash:", txHash);
+      } catch (error) {
+        console.error("Error creating Zora token:", error);
+        setError("Failed to create token, but tweet was saved");
+      }
     } catch (error) {
       console.error("Tweet submission error:", error);
       if (error instanceof Error) {
