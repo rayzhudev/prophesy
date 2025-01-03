@@ -1,6 +1,9 @@
 # Stage 1: Builder
 FROM ubuntu:22.04 as builder
 
+# Add build argument with default value
+ARG NODE_ENV=development
+
 # Install Bun
 RUN apt-get update && apt-get install -y curl unzip && \
     curl -fsSL https://bun.sh/install | bash
@@ -46,10 +49,11 @@ RUN bun build ./router.ts --outdir ./dist --target node
 WORKDIR /app/packages/backend
 RUN bun run db:generate
 
-# Build the backend
+# Build the backend with NODE_ENV defined from build arg
 RUN bun build ./src/index.ts --outdir ./dist --target node \
     --external @prisma/client \
-    --external prisma
+    --external prisma \
+    --define process.env.NODE_ENV="'${NODE_ENV}'"
 
 # Stage 2: Runtime
 FROM ubuntu:22.04
